@@ -5,7 +5,7 @@ def override_media_metadata(**overrides)->dict[str, str]:
 	args=dict({'map_metadata':0})
 	index=0
 	for key in overrides:
-		args[f'metadata:g:{index}']=key+'='+overrides[key]
+		args[f'metadata:g:{index}']=f'{key}={overrides[key]}'
 		index+=1
 	return args
 
