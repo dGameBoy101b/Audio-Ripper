@@ -2,7 +2,6 @@ from scan_for_audio import scan_for_audio
 from override_media_metadata import override_media_metadata
 from to_mp3 import change_file_extension
 from copy_media import copy_media
-import multiprocessing
 import threading
 from os import DirEntry
 import os.path
@@ -18,7 +17,12 @@ class RipReport:
 	metadata_args:dict
 	conversions:dict
 
-def rip(output_dir:str, input_dir:str, output_extension:str='.mp3', **metadata_overrides)->object:
+	def __str__(self)->str:
+		return (f'{self.input_dir} -> {self.output_dir}*{self.output_extension}'
+		+f'\n{len(self.metadata_overrides)} metadata overrides: '+'\n'.join([f'\t{key}={value}' for (key,value) in self.metadata_overrides.items()])
+		+f'\n{len(self.conversions)} conversions:\n'+'\n'.join([f'\t{input} -> {output}' for (input, output) in self.conversions.items()]))
+
+def rip(output_dir:str, input_dir:str, output_extension:str='.mp3', **metadata_overrides)->RipReport:
 	logger = logging.getLogger(__name__)
 	metadata_args = override_media_metadata(**metadata_overrides)
 	conversions = dict()
@@ -31,8 +35,6 @@ def rip(output_dir:str, input_dir:str, output_extension:str='.mp3', **metadata_o
 		logger.info(f'copied {input_path} to {output_path}')
 
 	logger.info(f'beginning rip from {input_dir} to {output_dir} with {output_extension} output type and following metadata overrides: {"\n".join(metadata_overrides)}')
-	# with multiprocessing.Pool() as pool:
-	# 		pool.map(copy, scan_for_audio(input_dir))
 	logger.debug('creating threads...')
 	threads = [threading.Thread(target=copy, args=(entry,)) for entry in scan_for_audio(input_dir)]
 	logger.debug('starting threads...')
@@ -53,5 +55,5 @@ if __name__ =='__main__':
 	OUTPUT_DIR='./test_out'
 	INPUT_DIR='./test_dir'
 	print(f'{INPUT_DIR} -rip-> {OUTPUT_DIR} starting...')
-	rip(OUTPUT_DIR, INPUT_DIR)
-	print(f'{INPUT_DIR} -rip-> {OUTPUT_DIR} complete')
+	report = rip(OUTPUT_DIR, INPUT_DIR)
+	print(f'{INPUT_DIR} -rip-> {OUTPUT_DIR} complete\n{report}')
