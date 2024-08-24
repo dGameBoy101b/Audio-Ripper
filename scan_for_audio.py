@@ -6,7 +6,7 @@ from collections.abc import Iterator
 import ffmpeg_media_type.exceptions
 
 def scan_for_audio(*root_paths:list[str])->Iterator[os.DirEntry]:
-	logger = logging.getLogger(__file__)
+	logger = logging.getLogger(__name__)
 
 	def is_audio(entry:os.DirEntry)->bool:
 		if not entry.is_file():
