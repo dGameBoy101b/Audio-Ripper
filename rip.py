@@ -18,8 +18,8 @@ class RipReport:
 	conversions:dict
 
 	def __str__(self)->str:
-		return (f'{self.input_dir} -> {self.output_dir}*{self.output_extension}'
-		+f'\n{len(self.metadata_overrides)} metadata overrides: '+'\n'.join([f'\t{key}={value}' for (key,value) in self.metadata_overrides.items()])
+		return (f'{self.input_dir} -> {self.output_dir}/*{self.output_extension}'
+		+f'\n{len(self.metadata_overrides)} metadata overrides:\n'+'\n'.join([f'\t{key}={value}' for (key,value) in self.metadata_overrides.items()])
 		+f'\n{len(self.conversions)} conversions:\n'+'\n'.join([f'\t{input} -> {output}' for (input, output) in self.conversions.items()]))
 
 def rip(output_dir:str, input_dir:str, output_extension:str='.mp3', **metadata_overrides)->RipReport:
@@ -54,6 +54,7 @@ if __name__ =='__main__':
 	logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 	OUTPUT_DIR='./test_out'
 	INPUT_DIR='./test_dir'
+	METADATA_OVERRIDES={'test':'foobar', 'year':2024}
 	print(f'{INPUT_DIR} -rip-> {OUTPUT_DIR} starting...')
-	report = rip(OUTPUT_DIR, INPUT_DIR)
+	report = rip(OUTPUT_DIR, INPUT_DIR, '.mp3', **METADATA_OVERRIDES)
 	print(f'{INPUT_DIR} -rip-> {OUTPUT_DIR} complete\n{report}')
