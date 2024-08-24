@@ -1,16 +1,13 @@
 import ffmpeg
 import logging
-from collections.abc import Callable
 
-def copy_media(output_filepath:str, input_filepath:str, transform:Callable[['stream'], 'stream']=lambda x: x):
+def copy_media(output_filepath:str, input_filepath:str, **kwargs):
 	logger = logging.getLogger(__name__)
 	logger.info(f'copying {input_filepath} to {output_filepath}')
 	logger.debug(f'creating input stream: {input_filepath}')
 	input_stream = ffmpeg.input(input_filepath)
-	logger.debug(f'transforming data: {transform}')
-	transform_stream = transform(input_stream)
 	logger.debug(f'creating output stream: {output_filepath}')
-	output_stream = ffmpeg.output(transform_stream, output_filepath)
+	output_stream = ffmpeg.output(input_stream, output_filepath, **kwargs)
 	logger.debug('creating overwrite stream')
 	overwrite_stream = ffmpeg.overwrite_output(output_stream)
 	logger.debug('running ffmpeg...')
