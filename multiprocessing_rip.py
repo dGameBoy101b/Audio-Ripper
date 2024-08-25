@@ -10,12 +10,13 @@ import multiprocessing.pool
 from dataclasses import dataclass
 from collections.abc import Iterable
 import time
+from pathlib import PurePath
 
 @dataclass(frozen=True)
 class __MultiprocessArgs:
-	input_path:str
-	output_dir:str
-	output_extension:str
+	input_path: PurePath
+	output_dir: PurePath
+	output_extension: str
 	metadata_args: dict
 
 def __copy(args:__MultiprocessArgs):
@@ -27,13 +28,17 @@ def __copy(args:__MultiprocessArgs):
 		logger.debug(f'copied {input_path} to {output_path}')
 		return (input_path, output_path)
 
-def rip_multiprocessed(output_dir:str, input_dir:str, output_extension:str|None, **metadata_overrides)->RipReport:
+def rip_multiprocessed(output_dir:PurePath, input_dir:PurePath, output_extension:str|None, **metadata_overrides)->RipReport:
 	logger = logging.getLogger(__name__)
+	output_dir = PurePath(output_dir)
+	input_dir = PurePath(input_dir)
+	if output_extension != None:
+		output_extension = str(output_extension)
 	metadata_args = override_media_metadata(**metadata_overrides)
 
 	def generate_args(input_entries:Iterable[DirEntry])->Iterable[__MultiprocessArgs]:
 		for input_entry in input_entries:
-			yield __MultiprocessArgs(input_entry.path, output_dir, output_extension, metadata_args)
+			yield __MultiprocessArgs(PurePath(input_entry.path), output_dir, output_extension, metadata_args)
 
 	logger.info(f'beginning rip from {input_dir} to {output_dir} with {output_extension} output type and following metadata overrides: {"\n".join(metadata_overrides)}')
 	start_time = time.perf_counter()

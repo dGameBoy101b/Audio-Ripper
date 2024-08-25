@@ -8,9 +8,14 @@ from os import DirEntry
 import os.path
 import threading
 import time
+from pathlib import PurePath
 
-def rip_threaded(output_dir:str, input_dir:str, output_extension:str|None, **metadata_overrides)->RipReport:
+def rip_threaded(output_dir:PurePath, input_dir:PurePath, output_extension:str|None, **metadata_overrides)->RipReport:
 	logger = logging.getLogger(__name__)
+	output_dir = PurePath(output_dir)
+	input_dir = PurePath(input_dir)
+	if output_extension != None:
+		output_extension = str(output_extension)
 	metadata_args = override_media_metadata(**metadata_overrides)
 	conversions = dict()
 	

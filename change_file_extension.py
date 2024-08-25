@@ -1,9 +1,11 @@
 import os.path
+from pathlib import PurePath
 
-def change_file_extension(path:str, ext:str|None)->str:
+def change_file_extension(path:PurePath, ext:str|None)->PurePath:
+	path = PurePath(path)
 	if ext is None:
 		return path
-	return os.path.splitext(path)[0]+str(ext)
+	return path.with_suffix(str(ext))
 
 if __name__ =='__main__':
 	from scan_for_audio import scan_for_audio

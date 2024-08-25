@@ -2,8 +2,9 @@ import logging
 from rip_report import RipReport
 from threaded_rip import rip_threaded
 from multiprocessing_rip import rip_multiprocessed
+from pathlib import PurePath
 
-def rip(output_dir:str, input_dir:str, output_extension:str=None, strategy:str='threaded', **metadata_overrides)->RipReport:
+def rip(output_dir:PurePath, input_dir:PurePath, output_extension:str=None, strategy:str='threaded', **metadata_overrides)->RipReport:
 	logger = logging.getLogger(__name__)
 	if strategy == 'multiprocessing':
 		logger.debug('ripping with multiprocessing')
