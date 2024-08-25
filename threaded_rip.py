@@ -2,7 +2,7 @@ from rip_report import RipReport
 import logging
 from scan_for_audio import scan_for_audio
 from override_media_metadata import override_media_metadata
-from to_mp3 import change_file_extension
+from change_file_extension import change_file_extension
 from copy_media import copy_media
 from os import DirEntry
 import os.path
