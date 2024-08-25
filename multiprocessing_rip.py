@@ -27,7 +27,7 @@ def __copy(args:__MultiprocessArgs):
 		logger.debug(f'copied {input_path} to {output_path}')
 		return (input_path, output_path)
 
-def rip_multiprocessed(output_dir:str, input_dir:str, output_extension:str, **metadata_overrides)->RipReport:
+def rip_multiprocessed(output_dir:str, input_dir:str, output_extension:str|None, **metadata_overrides)->RipReport:
 	logger = logging.getLogger(__name__)
 	metadata_args = override_media_metadata(**metadata_overrides)
 

@@ -9,7 +9,7 @@ import os.path
 import threading
 import time
 
-def rip_threaded(output_dir:str, input_dir:str, output_extension:str, **metadata_overrides)->RipReport:
+def rip_threaded(output_dir:str, input_dir:str, output_extension:str|None, **metadata_overrides)->RipReport:
 	logger = logging.getLogger(__name__)
 	metadata_args = override_media_metadata(**metadata_overrides)
 	conversions = dict()
