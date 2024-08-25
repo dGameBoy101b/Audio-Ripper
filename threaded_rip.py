@@ -7,6 +7,7 @@ from copy_media import copy_media
 from os import DirEntry
 import os.path
 import threading
+import time
 
 def rip_threaded(output_dir:str, input_dir:str, output_extension:str, **metadata_overrides)->RipReport:
 	logger = logging.getLogger(__name__)
@@ -21,6 +22,7 @@ def rip_threaded(output_dir:str, input_dir:str, output_extension:str, **metadata
 		logger.debug(f'copied {input_path} to {output_path}')
 
 	logger.info(f'beginning rip from {input_dir} to {output_dir} with {output_extension} output type and following metadata overrides: {"\n".join(metadata_overrides)}')
+	start_time = time.perf_counter()
 	logger.debug('creating threads...')
 	threads = [threading.Thread(target=copy, args=(entry,)) for entry in scan_for_audio(input_dir)]
 	logger.debug('starting threads...')
@@ -31,9 +33,10 @@ def rip_threaded(output_dir:str, input_dir:str, output_extension:str, **metadata
 		logger.debug(f'waiting for threads {index}/{len(threads)}')
 		thread.join()
 		index += 1
-	logger.info(f'ripped {len(conversions)} audio files')
+	duration = time.perf_counter()-start_time
+	logger.info(f'ripped {len(conversions)} audio files in {duration} seconds')
 
-	return RipReport(output_dir, input_dir, output_extension, metadata_overrides, metadata_args, conversions)
+	return RipReport(output_dir, input_dir, output_extension, metadata_overrides, metadata_args, conversions, duration)
 
 if __name__ =='__main__':
 	import sys

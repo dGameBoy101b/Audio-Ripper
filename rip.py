@@ -21,6 +21,7 @@ if __name__ =='__main__':
 	print(f'{INPUT_DIR} -threaded rip-> {OUTPUT_DIR} starting...')
 	report = rip(OUTPUT_DIR, INPUT_DIR, '.mp3', 'threaded', **METADATA_OVERRIDES)
 	print(f'{INPUT_DIR} -threaded rip-> {OUTPUT_DIR} complete\n{report}')
+	input('ready for next test case?')
 
 	print(f'{INPUT_DIR} -multiprocessing rip-> {OUTPUT_DIR} starting...')
 	report = rip(OUTPUT_DIR, INPUT_DIR, '.mp3', 'multiprocessing', **METADATA_OVERRIDES)

@@ -9,6 +9,7 @@ import os.path
 import multiprocessing.pool
 from dataclasses import dataclass
 from collections.abc import Iterable
+import time
 
 @dataclass(frozen=True)
 class __MultiprocessArgs:
@@ -35,15 +36,17 @@ def rip_multiprocessed(output_dir:str, input_dir:str, output_extension:str, **me
 			yield __MultiprocessArgs(input_entry.path, output_dir, output_extension, metadata_args)
 
 	logger.info(f'beginning rip from {input_dir} to {output_dir} with {output_extension} output type and following metadata overrides: {"\n".join(metadata_overrides)}')
+	start_time = time.perf_counter()
 	logger.debug('creating process pool...')
 	with multiprocessing.pool.Pool() as pool:
 		logger.debug('mapping tasks...')
 		conversions = pool.map(__copy, generate_args(scan_for_audio(input_dir)))
 		logger.debug('saving conversions')
 		conversions = dict(conversions)
-	logger.info(f'ripped {len(conversions)} audio files')
+	duration = time.perf_counter()-start_time
+	logger.info(f'ripped {len(conversions)} audio files in {duration} seconds')
 
-	return RipReport(output_dir, input_dir, output_extension, metadata_overrides, metadata_args, conversions)
+	return RipReport(output_dir, input_dir, output_extension, metadata_overrides, metadata_args, conversions, duration)
 
 if __name__ =='__main__':
 	import sys
