@@ -7,7 +7,7 @@ class RipReport:
 	input_dir:PurePath
 	output_extension:str
 	metadata_overrides:dict
-	metadata_args:dict
+	output_args:dict
 	conversions:dict
 	seconds_to_rip:float
 

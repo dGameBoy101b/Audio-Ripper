@@ -3,6 +3,7 @@ import sys
 from pathlib import PurePath
 import logging
 import rip
+from rip_args import RipArgs
 
 def create_parser()->ArgumentParser:
 	logger = logging.getLogger(__name__)
@@ -49,6 +50,8 @@ sys_args = sys.argv[1:]
 logger.debug(f'given commandline args: {sys_args}')
 args = parser.parse_args(sys_args)
 logger.debug(f'args parsed: {args}')
-report = rip.rip(args.output_dir, args.input_dir, args.output_filetype, **dict(args.metadata_overrides))
+rip_args = RipArgs(args.output_dir, args.input_dir, args.output_filetype, dict(args.metadata_overrides))
+logger.debug(f'args packed and sanitised: {rip_args}')
+report = rip.rip(rip_args)
 logger.debug(f'rip complete: {report}')
 print(report)
