@@ -1,9 +1,13 @@
+from pathlib import Path
 import ffmpeg
 import logging
 
-def copy_media(output_filepath:str, input_filepath:str, **kwargs):
+def copy_media(output_filepath:Path, input_filepath:Path, **kwargs):
 	logger = logging.getLogger(__name__)
+	output_filepath = Path(output_filepath)
+	input_filepath = Path(input_filepath)
 	logger.info(f'copying {input_filepath} to {output_filepath}')
+	output_filepath.mkdir(parents=True, exist_ok=True)
 	logger.debug(f'creating input stream: {input_filepath}')
 	input_stream = ffmpeg.input(input_filepath)
 	logger.debug(f'creating output stream: {output_filepath}')
