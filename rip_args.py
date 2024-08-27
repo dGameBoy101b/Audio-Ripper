@@ -24,6 +24,5 @@ class RipArgs:
 
 	def output_path(self, input_path:PurePath)->PurePath:
 		input_path = PurePath(input_path)
-		filename = change_file_extension(input_path, self.output_extension).name
-		path = self.output_dir / input_path.relative_to(self.input_dir).anchor
-		return path / filename
+		filename = change_file_extension(self.output_dir / input_path.relative_to(self.input_dir), self.output_extension)
+		return filename
