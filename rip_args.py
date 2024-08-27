@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pathlib import PurePath
+from change_file_extension import change_file_extension
 from override_media_metadata import override_media_metadata
 
 @dataclass(frozen=True)
@@ -20,3 +21,9 @@ class RipArgs:
 		object.__setattr__(self, 'output_args', override_media_metadata(**metadata_overrides))
 		if output_extension is not None:
 			self.output_args['f'] = self.output_extension[1:]
+
+	def output_path(self, input_path:PurePath)->PurePath:
+		input_path = PurePath(input_path)
+		filename = change_file_extension(input_path, self.output_extension).name
+		path = self.output_dir / input_path.relative_to(self.input_dir).anchor
+		return path / filename
