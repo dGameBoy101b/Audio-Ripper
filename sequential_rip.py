@@ -15,7 +15,7 @@ def rip_sequential(args:RipArgs)->RipReport:
 	start_time = time.perf_counter()
 	for input_entry in scan_for_audio(args.input_dir):
 		input_path = input_entry.path
-		output_path = os.path.join(args.output_dir, change_file_extension(input_entry.name, args.output_extension))
+		output_path = args.output_path(input_path)
 		copy_media(output_path, input_path, **args.output_args)
 		conversions[input_path]=output_path
 		logger.debug(f'copied {input_path} to {output_path}')

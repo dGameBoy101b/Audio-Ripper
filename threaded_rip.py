@@ -15,7 +15,7 @@ def rip_threaded(args:RipArgs)->RipReport:
 	
 	def copy(input_entry:DirEntry):
 		input_path = input_entry.path
-		output_path = os.path.join(args.output_dir, change_file_extension(input_entry.name, args.output_extension))
+		output_path = args.output_path(input_path)
 		copy_media(output_path, input_path, **args.output_args)
 		conversions[input_path]=output_path
 		logger.debug(f'copied {input_path} to {output_path}')
