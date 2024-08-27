@@ -1,17 +1,17 @@
-from pathlib import Path
+from pathlib import Path, PurePath
 import ffmpeg
 import logging
 
-def copy_media(output_filepath:Path, input_filepath:Path, **kwargs):
+def copy_media(output_filepath:PurePath, input_filepath:PurePath, **kwargs):
 	logger = logging.getLogger(__name__)
-	output_filepath = Path(output_filepath)
-	input_filepath = Path(input_filepath)
+	output_filepath = PurePath(output_filepath)
+	input_filepath = PurePath(input_filepath)
 	logger.info(f'copying {input_filepath} to {output_filepath}')
-	output_filepath.mkdir(parents=True, exist_ok=True)
+	Path(output_filepath.parent).mkdir(parents=True, exist_ok=True)
 	logger.debug(f'creating input stream: {input_filepath}')
 	input_stream = ffmpeg.input(input_filepath)
 	logger.debug(f'creating output stream: {output_filepath}')
-	output_stream = ffmpeg.output(input_stream, output_filepath, **kwargs)
+	output_stream = ffmpeg.output(input_stream, str(output_filepath), **kwargs)
 	logger.debug('creating overwrite stream')
 	overwrite_stream = ffmpeg.overwrite_output(output_stream)
 	logger.debug('running ffmpeg...')
