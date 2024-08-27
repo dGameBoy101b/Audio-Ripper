@@ -44,6 +44,7 @@ def create_parser()->ArgumentParser:
 	logger.debug('argument parser created')
 	return parser
 
+logging.basicConfig(filename="./rip.log", filemode="w", level=logging.DEBUG, style="{", format="[{asctime}]{levelname}:{name}:{msg}")
 logger = logging.getLogger(__name__)
 parser = create_parser()
 sys_args = sys.argv[1:]
