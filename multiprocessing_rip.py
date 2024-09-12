@@ -5,7 +5,6 @@ from scan_for_audio import scan_for_audio
 from change_file_extension import change_file_extension
 from copy_media import copy_media
 from os import DirEntry
-import os.path
 import multiprocessing.pool
 from dataclasses import dataclass
 from collections.abc import Iterable
@@ -15,16 +14,14 @@ from pathlib import PurePath
 @dataclass(frozen=True)
 class __MultiprocessArgs:
 	input_path: PurePath
-	output_dir: PurePath
-	output_extension: str
-	metadata_args: dict
+	rip_args: RipArgs
 
 def __copy(args:__MultiprocessArgs):
 		logger = logging.getLogger(__name__)
 		input_path = args.input_path
-		output_path = os.path.join(args.output_dir, change_file_extension(os.path.basename(args.input_path), args.output_extension))
+		output_path = args.rip_args.output_path(input_path)
 		logger.debug(f'copying {input_path} to {output_path}')
-		copy_media(output_path, input_path, **args.metadata_args)
+		copy_media(output_path, input_path, **args.rip_args.output_args)
 		logger.debug(f'copied {input_path} to {output_path}')
 		return (input_path, output_path)
 
@@ -33,7 +30,7 @@ def rip_multiprocessed(args:RipArgs)->RipReport:
 
 	def generate_args(input_entries:Iterable[DirEntry])->Iterable[__MultiprocessArgs]:
 		for input_entry in input_entries:
-			yield __MultiprocessArgs(PurePath(input_entry.path), args.output_dir, args.output_extension, args.metadata_overrides)
+			yield __MultiprocessArgs(PurePath(input_entry.path), args)
 
 	logger.info(f'beginning rip from {args.input_dir} to {args.output_dir} with {args.output_extension} output type and following metadata overrides: {"\n".join(args.metadata_overrides)}')
 	start_time = time.perf_counter()
@@ -41,12 +38,12 @@ def rip_multiprocessed(args:RipArgs)->RipReport:
 	with multiprocessing.pool.Pool() as pool:
 		logger.debug('mapping tasks...')
 		conversions = pool.map(__copy, generate_args(scan_for_audio(args.input_dir)))
-		logger.debug('saving conversions')
+		logger.debug('saving conversions...')
 		conversions = dict(conversions)
 	duration = time.perf_counter()-start_time
 	logger.info(f'ripped {len(conversions)} audio files in {duration} seconds')
 
-	return RipReport(args.output_dir, args.input_dir, args.output_extension, args.metadata_overrides, args.output_args, conversions, duration)
+	return RipReport(args, conversions, duration)
 
 if __name__ =='__main__':
 	import sys
