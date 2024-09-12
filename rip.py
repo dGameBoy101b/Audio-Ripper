@@ -27,6 +27,11 @@ if __name__ =='__main__':
 	METADATA_OVERRIDES={'test':'foobar', 'year':2024}
 	ARGS=RipArgs(OUTPUT_DIR, INPUT_DIR, '.mp3', METADATA_OVERRIDES)
 
+	print(f'{INPUT_DIR} -sequential rip-> {OUTPUT_DIR} starting...')
+	report = rip(ARGS, 'sequential')
+	print(f'{INPUT_DIR} -sequential rip-> {OUTPUT_DIR} complete\n{report}')
+	input('ready for next test case?')
+
 	print(f'{INPUT_DIR} -threaded rip-> {OUTPUT_DIR} starting...')
 	report = rip(ARGS, 'threaded')
 	print(f'{INPUT_DIR} -threaded rip-> {OUTPUT_DIR} complete\n{report}')
