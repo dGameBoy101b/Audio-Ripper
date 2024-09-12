@@ -22,7 +22,7 @@ def rip_sequential(args:RipArgs)->RipReport:
 	duration = time.perf_counter()-start_time
 	logger.info(f'ripped {len(conversions)} audio files in {duration} seconds')
 
-	return RipReport(args.output_dir, args.input_dir, args.output_extension, args.metadata_overrides, args.output_args, conversions, duration)
+	return RipReport(args, conversions, duration)
 
 if __name__ =='__main__':
 	import sys
