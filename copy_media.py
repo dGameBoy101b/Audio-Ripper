@@ -15,7 +15,7 @@ def copy_media(output_filepath:PurePath, input_filepath:PurePath, **kwargs):
 	logger.debug('creating overwrite stream')
 	overwrite_stream = ffmpeg.overwrite_output(output_stream)
 	logger.debug('running ffmpeg...')
-	(_, out) = ffmpeg.run(overwrite_stream, quiet=True) #it's actually stderr that's used for reporting
+	(_, out) = ffmpeg.run(overwrite_stream, quiet=True) #it's actually stderr that ffmpeg uses for reporting
 	if out:
 		logger.debug(out.decode())
 	logger.info(f'copied {input_filepath} to {output_filepath}')
