@@ -15,11 +15,13 @@ class RipArgs:
 		object.__setattr__(self, 'output_dir', PurePath(output_dir))
 		object.__setattr__(self, 'input_dir', PurePath(input_dir))
 		object.__setattr__(self, 'output_extension', None if output_extension is None else str(output_extension))
-		if self.output_extension[0] != '.':
+		if self.output_extension is not None and self.output_extension[0] != '.':
 			object.__setattr__(self, 'output_extension', '.'+ output_extension)
 		object.__setattr__(self, 'metadata_overrides', dict(metadata_overrides))
 		object.__setattr__(self, 'output_args', override_media_metadata(**metadata_overrides))
-		if output_extension is not None:
+		if output_extension is None:
+			self.output_args['codec'] = 'copy'
+		else:
 			self.output_args['f'] = self.output_extension[1:]
 
 	def output_path(self, input_path:PurePath)->PurePath:
@@ -29,4 +31,4 @@ class RipArgs:
 	
 	def __str__(self)->str:
 		return (f'{self.input_dir} -> {self.output_dir / ('*' if self.output_extension is None else '*'+self.output_extension)}'
-		+f'\n{len(self.metadata_overrides)} metadata overrides:\n'+'\n'.join([f'\t{key}={'' if value is None else value}' for (key,value) in self.metadata_overrides.items()]))
+		+f'\n{len(self.metadata_overrides)} metadata overrides:'+''.join([f'\n\t{key}={'' if value is None else value}' for (key,value) in self.metadata_overrides.items()]))
