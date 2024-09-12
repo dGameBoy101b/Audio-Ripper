@@ -26,3 +26,7 @@ class RipArgs:
 		input_path = PurePath(input_path)
 		filename = change_file_extension(self.output_dir / input_path.relative_to(self.input_dir), self.output_extension)
 		return filename
+	
+	def __str__(self)->str:
+		return (f'{self.input_dir} -> {self.output_dir / ('*' if self.output_extension is None else '*'+self.output_extension)}'
+		+f'\n{len(self.metadata_overrides)} metadata overrides:\n'+'\n'.join([f'\t{key}={'' if value is None else value}' for (key,value) in self.metadata_overrides.items()]))
