@@ -1,12 +1,18 @@
 import ffmpeg
 
-#https://github.com/kkroening/ffmpeg-python/issues/112
 def override_media_metadata(**overrides)->dict[str, str]:
-	args=dict({'map_metadata':0})
+	#some encoders dump metadata in the global container while others dump it in the stream so we need to copy both
+	args=dict({ 
+		'map_metadata:g':'0:g', #copy global metadata
+		'map_metadata:g:':'0:s:a' #copy audio stream metadata
+	})
+
+	#https://github.com/kkroening/ffmpeg-python/issues/112
 	index=0
 	for key in overrides:
-		args[f'metadata:g:{index}']=f'{key}={overrides[key]}'
+		args[f'metadata:g:{index}']=f'{key}={overrides[key]}' 
 		index+=1
+		
 	return args
 
 if __name__=='__main__':
