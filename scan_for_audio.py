@@ -9,7 +9,11 @@ def scan_for_audio(*root_paths:list[str])->Iterator[os.DirEntry]:
 	def is_audio(entry:os.DirEntry)->bool:
 		if not entry.is_file():
 			return False
-		probe = FFProbe(entry.path)
+		logger.debug(f'probing file: {entry.path}')
+		try:
+			probe = FFProbe(entry.path)
+		except Exception as x:
+			raise RuntimeError(f"Failed to probe file: {entry.path}", x)
 		return len(probe.audio) > 0
 	
 	def is_directory(entry:os.DirEntry)->bool:
@@ -20,14 +24,17 @@ def scan_for_audio(*root_paths:list[str])->Iterator[os.DirEntry]:
 		logger.info(f'scanning directory for audio files: {directory}')
 		with os.scandir(directory) as scan:
 			for entry in scan:
-				if is_audio(entry):
-					logger.info(f'found audio file: {entry.path}')
-					yield entry
-				elif is_directory(entry):
-					logger.info(f'found directory: {entry.path}')
-					to_explore.append(entry.path)
-				else:
-					logger.info(f'skipped entry: {entry.path}')
+				try:
+					if is_audio(entry):
+						logger.info(f'found audio file: {entry.path}')
+						yield entry
+					elif is_directory(entry):
+						logger.info(f'found directory: {entry.path}')
+						to_explore.append(entry.path)
+					else:
+						logger.info(f'skipped entry: {entry.path}')
+				except Exception as x:
+					logger.error(f'Failed to identify directory entry: {entry.path}', exc_info=x)
 
 if __name__ == '__main__':
 	import sys
