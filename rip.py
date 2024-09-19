@@ -1,16 +1,22 @@
 import logging
 from rip_args import RipArgs
 from rip_report import RipReport
+from enum import Enum
 
-def rip(args: RipArgs, strategy:str='threaded')->RipReport:
+class RipStrategy(Enum):
+	THREADED = 'threaded'
+	SEQUENTIAL = 'sequential'
+	MULTIPROCESSING = 'multiprocessing'
+
+def rip(args: RipArgs, strategy:RipStrategy=RipStrategy.THREADED)->RipReport:
 	logger = logging.getLogger(__name__)
 
-	if strategy == 'sequential':
+	if strategy == RipStrategy.SEQUENTIAL:
 		from sequential_rip import rip_sequential
 		logger.debug('ripping sequentially')
 		return rip_sequential(args)
 	
-	if strategy == 'multiprocessing':
+	if strategy == RipStrategy.MULTIPROCESSING:
 		from multiprocessing_rip import rip_multiprocessed
 		logger.debug('ripping with multiprocessing')
 		return rip_multiprocessed(args)
