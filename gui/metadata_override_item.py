@@ -5,8 +5,8 @@ class MetadataOverrideItem:
 
 	def __init__(self, master:ttk.Widget=None, on_remove:Callable[['MetadataOverrideItem'],None]=None):
 		self.on_remove = on_remove
-		self.key_entry = ttk.Entry(master)
-		self.value_entry = ttk.Entry(master)
+		self.key_entry = ttk.Entry(master, width=10)
+		self.value_entry = ttk.Entry(master, width=20)
 		self.remove_button = ttk.Button(master, command=self.__remove, text='-', width=2)
 
 	def __remove(self):
