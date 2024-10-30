@@ -1,24 +1,28 @@
 import os
+import os.path
 import logging
 from collections.abc import Iterator
 from ffprobe import FFProbe
 
-def scan_for_audio(*root_paths:list[str])->Iterator[os.DirEntry]:
-	logger = logging.getLogger(__name__)
+def is_file(path:os.PathLike)->bool:
+	return os.path.isfile(path)
 
-	def is_audio(entry:os.DirEntry)->bool:
-		if not entry.is_file():
-			return False
-		logger.debug(f'probing file: {entry.path}')
-		try:
-			probe = FFProbe(entry.path)
-		except Exception as x:
-			raise RuntimeError(f"Failed to probe file: {entry.path}", x)
-		return len(probe.audio) > 0
+def is_audio(path:os.PathLike)->bool:
+	logger = logging.getLogger(__name__)
+	if is_file(path):
+		return False
+	logger.debug(f'probing file: {path}')
+	try:
+		probe = FFProbe(path)
+	except Exception as x:
+		raise RuntimeError(f"Failed to probe file: {path}", x)
+	return len(probe.audio) > 0
 	
-	def is_directory(entry:os.DirEntry)->bool:
-		return entry.is_dir()
-	
+def is_directory(path:os.PathLike)->bool:
+	return os.path.isdir(path)
+
+def scan_for_audio(*root_paths:list[os.PathLike])->Iterator[os.PathLike]:
+	logger = logging.getLogger(__name__)
 	to_explore=list(root_paths)
 	for directory in to_explore:
 		logger.info(f'scanning directory for audio files: {directory}')
