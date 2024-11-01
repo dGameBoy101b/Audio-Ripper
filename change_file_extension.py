@@ -1,4 +1,3 @@
-import os.path
 from pathlib import PurePath
 
 def change_file_extension(path:PurePath, ext:str|None)->PurePath:

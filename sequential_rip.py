@@ -2,7 +2,6 @@ from rip_args import RipArgs
 from rip_report import RipReport
 import logging
 from scan_for_audio import scan_for_audio
-from change_file_extension import change_file_extension
 from copy_media import copy_media
 import os.path
 import time
