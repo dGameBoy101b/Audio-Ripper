@@ -2,7 +2,7 @@ from os import PathLike, scandir, listdir
 from tkinter import ttk
 from asyncio import create_task
 from typing import Callable
-from scan_for_audio import is_audio, is_directory
+from ..scan_for_audio import is_audio, is_directory
 
 class InputDirectoryItem(ttk.Frame):
 
@@ -21,6 +21,7 @@ class InputDirectoryItem(ttk.Frame):
 		self.text.grid(column=0, row=0, sticky='EW')
 		self.remove_button.grid(column=1, row=0)
 		self.progress_bar.grid(column=0, columnspan=1, row=1, sticky='EW')
+		self.columnconfigure(0, weight=1)
 		
 		self.task = create_task(self.__scan())
 

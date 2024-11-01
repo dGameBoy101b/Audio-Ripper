@@ -1,7 +1,7 @@
 from tkinter import ttk
-from settings_frame import SettingsFrame
-from input_frame import InputFrame
-from output_frame import OutputFrame
+from .settings_frame import SettingsFrame
+from .input_frame import InputFrame
+from .output_frame import OutputFrame
 
 class AudioRipperGUI(ttk.Frame):
 
@@ -26,7 +26,10 @@ class AudioRipperGUI(ttk.Frame):
 		window.columnconfigure(0, weight=1)
 		window.rowconfigure(0, weight=1)
 
-if __name__ == '__main__':
+def main():
 	app = AudioRipperGUI()
 	app.configure_window()
 	app.mainloop()
+
+if __name__ == '__main__':
+	main()

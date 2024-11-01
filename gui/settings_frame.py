@@ -1,6 +1,6 @@
 from tkinter import ttk
-from file_extension_frame import FileExtensionFrame
-from metadata_overrides_frame import MetadataOverridesFrame
+from .file_extension_frame import FileExtensionFrame
+from .metadata_overrides_frame import MetadataOverridesFrame
 
 class SettingsFrame(ttk.LabelFrame):
 

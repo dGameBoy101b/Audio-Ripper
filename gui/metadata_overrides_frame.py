@@ -1,6 +1,6 @@
 from tkinter import ttk
 import tkinter
-from metadata_override_item import MetadataOverrideItem
+from .metadata_override_item import MetadataOverrideItem
 
 class MetadataOverridesFrame(ttk.LabelFrame):
 

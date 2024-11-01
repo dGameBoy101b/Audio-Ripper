@@ -3,8 +3,8 @@ from tkinter import ttk
 from tkinter import filedialog
 from ..scan_for_audio import is_audio
 from ..scan_for_audio import is_directory
-from input_file_item import InputFileItem
-from input_directory_item import InputDirectoryItem
+from .input_file_item import InputFileItem
+from .input_directory_item import InputDirectoryItem
 
 class InputFrame(ttk.Labelframe):
 

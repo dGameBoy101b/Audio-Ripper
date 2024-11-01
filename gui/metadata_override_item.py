@@ -1,5 +1,5 @@
 from tkinter import ttk
-from typing import Callable, Self
+from typing import Callable
 
 class MetadataOverrideItem:
 
