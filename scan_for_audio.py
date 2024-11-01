@@ -9,7 +9,7 @@ def is_file(path:os.PathLike)->bool:
 
 def is_audio(path:os.PathLike)->bool:
 	logger = logging.getLogger(__name__)
-	if is_file(path):
+	if not is_file(path):
 		return False
 	logger.debug(f'probing file: {path}')
 	try:
