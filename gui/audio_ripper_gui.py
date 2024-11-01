@@ -34,7 +34,7 @@ class AudioRipperGUI(ttk.Frame):
 		logger.debug('configured audio ripper gui window')
 
 def main():
-	logging.basicConfig(filename=path.join(__package__, "./rip_gui.log"), filemode='w', level=logging.DEBUG, style="{", format="[{asctime}]{levelname}:{name}:{msg}")
+	logging.basicConfig(filename=path.join(path.dirname(__file__), "./rip_gui.log"), filemode='w', level=logging.DEBUG, style="{", format="[{asctime}]{levelname}:{name}:{msg}")
 	logger = logging.getLogger(__name__)
 	logger.debug('configured logging')
 

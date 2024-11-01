@@ -49,7 +49,7 @@ def bundle_args(args: Namespace)->RipArgs:
 	return RipArgs(args.output_dir, args.input_dir, args.output_filetype, dict(args.metadata_overrides))
 
 def main():
-	logging.basicConfig(filename=path.join(__package__, 'rip.log'), filemode="w", level=logging.DEBUG, style="{", format="[{asctime}]{levelname}:{name}:{msg}")
+	logging.basicConfig(filename=path.join(path.dirname(__file__), 'rip.log'), filemode="w", level=logging.DEBUG, style="{", format="[{asctime}]{levelname}:{name}:{msg}")
 	logger = logging.getLogger(__name__)
 	parser = create_parser()
 	sys_args = sys.argv[1:]
