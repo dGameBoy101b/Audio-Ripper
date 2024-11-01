@@ -2,6 +2,7 @@ from tkinter import ttk
 from .settings_frame import SettingsFrame
 from .input_frame import InputFrame
 from .output_frame import OutputFrame
+import logging
 
 class AudioRipperGUI(ttk.Frame):
 
@@ -27,6 +28,7 @@ class AudioRipperGUI(ttk.Frame):
 		window.rowconfigure(0, weight=1)
 
 def main():
+	logging.basicConfig(filename='./rip_gui.log', filemode='w', level=logging.DEBUG, style="{", format="[{asctime}]{levelname}:{name}:{msg}")
 	app = AudioRipperGUI()
 	app.configure_window()
 	app.mainloop()
