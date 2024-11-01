@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 import sys
 from pathlib import PurePath
 import logging
-import rip
+from threaded_rip import rip_threaded
 from rip_args import RipArgs
 
 def create_parser()->ArgumentParser:
@@ -54,7 +54,7 @@ def _main():
 	logger.debug(f'args parsed: {args}')
 	rip_args = RipArgs(args.output_dir, args.input_dir, args.output_filetype, dict(args.metadata_overrides))
 	logger.debug(f'args packed and sanitised: {rip_args}')
-	report = rip.rip(rip_args)
+	report = rip_threaded(rip_args)
 	logger.debug(f'rip complete: {report}')
 	print(report)
 
