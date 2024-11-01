@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 import sys
 from pathlib import PurePath
 import logging
@@ -44,7 +44,10 @@ def create_parser()->ArgumentParser:
 	logger.debug('argument parser created')
 	return parser
 
-def _main():
+def bundle_args(args: Namespace)->RipArgs:
+	return RipArgs(args.output_dir, args.input_dir, args.output_filetype, dict(args.metadata_overrides))
+
+def main():
 	logging.basicConfig(filename="./rip.log", filemode="w", level=logging.DEBUG, style="{", format="[{asctime}]{levelname}:{name}:{msg}")
 	logger = logging.getLogger(__name__)
 	parser = create_parser()
@@ -52,11 +55,11 @@ def _main():
 	logger.debug(f'given commandline args: {sys_args}')
 	args = parser.parse_args(sys_args)
 	logger.debug(f'args parsed: {args}')
-	rip_args = RipArgs(args.output_dir, args.input_dir, args.output_filetype, dict(args.metadata_overrides))
+	rip_args = bundle_args(args)
 	logger.debug(f'args packed and sanitised: {rip_args}')
 	report = rip_threaded(rip_args)
 	logger.debug(f'rip complete: {report}')
 	print(report)
 
 if __name__ == '__main__':
-	_main()
+	main()
