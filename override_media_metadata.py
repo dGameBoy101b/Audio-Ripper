@@ -1,5 +1,3 @@
-import ffmpeg
-
 def override_media_metadata(**overrides)->dict[str, str]:
 	#some encoders dump metadata in the global container while others dump it in the stream so we need to copy both
 	args=dict({ 
