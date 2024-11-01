@@ -2,8 +2,8 @@ from argparse import ArgumentParser, Namespace
 import sys
 from pathlib import PurePath
 import logging
-from threaded_rip import rip_threaded
-from rip_args import RipArgs
+from .threaded_rip import rip_threaded
+from .rip_args import RipArgs
 
 def create_parser()->ArgumentParser:
 	logger = logging.getLogger(__name__)

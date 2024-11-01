@@ -1,6 +1,5 @@
 from dataclasses import dataclass
-from pathlib import PurePath
-from rip_args import RipArgs
+from .rip_args import RipArgs
 
 @dataclass(frozen=True)
 class RipReport:

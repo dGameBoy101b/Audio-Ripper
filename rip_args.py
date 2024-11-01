@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from pathlib import PurePath
-from change_file_extension import change_file_extension
-from override_media_metadata import override_media_metadata
+from .change_file_extension import change_file_extension
+from .override_media_metadata import override_media_metadata
 
 @dataclass(frozen=True)
 class RipArgs:

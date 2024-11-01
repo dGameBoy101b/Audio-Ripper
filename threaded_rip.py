@@ -1,10 +1,9 @@
-from rip_args import RipArgs
-from rip_report import RipReport
+from .rip_args import RipArgs
+from .rip_report import RipReport
 import logging
-from scan_for_audio import scan_for_audio
-from copy_media import copy_media
+from .scan_for_audio import scan_for_audio
+from .copy_media import copy_media
 from os import DirEntry
-import os.path
 import threading
 import time
 
