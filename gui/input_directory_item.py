@@ -5,6 +5,7 @@ from ..scan_for_audio import is_audio, is_directory
 from tkinter import StringVar, IntVar
 from logging import getLogger
 from os.path import abspath
+from .counted_progress_bar import CountedProgressbar
 
 class InputDirectoryItem(ttk.Frame):
 
@@ -23,14 +24,14 @@ class InputDirectoryItem(ttk.Frame):
 		self.text_variable = StringVar(self, value=abspath(path))
 		self.text = ttk.Entry(self, textvariable=self.text_variable, state='readonly', width=30)
 		self.remove_button = ttk.Button(self, text='x', command=self.remove, width=2)
-		self.progress_variable = IntVar(self)
-		self.progress_max = len(listdir(path))
-		self.progress_bar = ttk.Progressbar(self, orient='horizontal', mode='determinate', maximum=self.progress_max, variable=self.progress_variable)
+		progress_max = len(listdir(path))
+		progress_variable = IntVar(self, value=0)
+		self.progress = CountedProgressbar(progress_variable, progress_max, master=self)
 		logger.debug('created input directory item children')
 
 		self.text.grid(column=0, row=0, sticky='EW')
 		self.remove_button.grid(column=1, row=0)
-		self.progress_bar.grid(column=0, columnspan=2, row=1, sticky='EW')
+		self.progress.grid(column=0, columnspan=2, row=1, sticky='EW')
 		self.columnconfigure(0, weight=1)
 		logger.debug('layed out input directory item')
 		
@@ -39,7 +40,7 @@ class InputDirectoryItem(ttk.Frame):
 		logger.info(f'scanning directory: {path}')
 
 	def __schedule_next(self):
-		self.task_id = self.after(100, self.__scan)
+		self.task_id = self.after(0, self.__scan)
 
 	def __scan(self):
 		logger = getLogger(__name__)
@@ -48,7 +49,7 @@ class InputDirectoryItem(ttk.Frame):
 			entry = next(self.scanner)
 		except StopIteration:
 			self.task_id = None
-			self.progress_variable.set(self.progress_max)
+			self.progress.value_variable.set(self.progress.maximum)
 			logger.info(f'scan complete: {self.path}')
 			self.remove()
 			return
@@ -62,12 +63,12 @@ class InputDirectoryItem(ttk.Frame):
 					logger.debug(f'found an audio file: {entry}')
 					self.on_audio(entry)
 			except RuntimeError as x:
-				logger.error(exc_info=x)
+				logger.error(f'failed to scan: {entry}', exc_info=x)
 		else:
 			logger.debug(f'not scanning: {entry}')
 
-		self.progress_variable.set(self.progress_variable.get() + 1)
-		logger.info(f'progressed scan {self.progress_variable.get()} / {self.progress_max}: {self.path}')
+		self.progress.value_variable.set(self.progress.value_variable.get() + 1)
+		logger.info(f'progressed scan {self.progress.value_variable.get()} / {self.progress.maximum}: {self.path}')
 
 		self.__schedule_next()
 
@@ -79,6 +80,9 @@ class InputDirectoryItem(ttk.Frame):
 		logger.debug(f'removed input directory: {self.path}')
 
 	def destroy(self):
-		if self.task_id is not None:
-			self.after_cancel(self.task_id)
+		try:
+			if self.task_id is not None:
+				self.after_cancel(self.task_id)
+		except AttributeError:
+			pass
 		super().destroy()
