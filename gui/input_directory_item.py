@@ -36,11 +36,17 @@ class InputDirectoryItem(ttk.Frame):
 		logger.debug('layed out input directory item')
 		
 		self.scanner = scandir(self.path)
-		self.__schedule_next()
-		logger.info(f'scanning directory: {path}')
+		self.task_id = None
+		logger.info(f'queued input directory scan: {path}')
 
-	def __schedule_next(self):
-		self.task_id = self.after(0, self.__scan)
+	def schedule_next(self, milliseconds:int=0):
+		logger = getLogger(__name__)
+		self.task_id = self.after(milliseconds, self.__scan)
+		logger.debug(f'scheduled input directory scan in {milliseconds} milliseconds: {self.path}')
+		self.update()
+
+	def is_scheduled(self)->bool:
+		return self.task_id is not None
 
 	def __scan(self):
 		logger = getLogger(__name__)
@@ -70,7 +76,7 @@ class InputDirectoryItem(ttk.Frame):
 		self.progress.value_variable.set(self.progress.value_variable.get() + 1)
 		logger.info(f'progressed scan {self.progress.value_variable.get()} / {self.progress.maximum}: {self.path}')
 
-		self.__schedule_next()
+		self.schedule_next()
 
 	def remove(self):
 		logger = getLogger(__name__)

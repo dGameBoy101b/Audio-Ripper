@@ -16,9 +16,9 @@ class InputFrame(ttk.Labelframe):
 		super().__init__(master, text='Input', **kwargs)
 		logger.debug('created input frame')
 
-		self.directory_items = list()
-		self.file_items = list()
-		self.paths = set()
+		self.directory_items:list[InputDirectoryItem] = list()
+		self.file_items:list[InputFileItem] = list()
+		self.paths:set[str] = set()
 		logger.debug('setup input frame variables')
 
 		self.header_frame = ttk.Frame(self)
@@ -63,7 +63,6 @@ class InputFrame(ttk.Labelframe):
 
 		self.__layout_items()
 
-
 	def remove_file(self, item:InputFileItem):
 		logger = getLogger(__name__)
 		self.file_items.remove(item)
@@ -73,6 +72,14 @@ class InputFrame(ttk.Labelframe):
 
 	def should_scan(self, path:PathLike):
 		return abspath(path) not in self.paths
+
+	def __start_scan(self, milliseconds:int=0)->bool:
+		if len(self.directory_items) < 1:
+			return False
+		if self.directory_items[0].is_scheduled():
+			return True
+		self.directory_items[0].schedule_next(milliseconds)
+		return True
 
 	def add_directory(self, directory:PathLike=None)->bool:
 		logger = getLogger(__name__)
@@ -101,6 +108,7 @@ class InputFrame(ttk.Labelframe):
 		self.directory_items.append(item)
 		self.paths.add(abspath(directory))
 		logger.info(f'input directory added: {directory}')
+		self.__start_scan()
 		self.__layout_items()
 		return True
 
@@ -109,6 +117,7 @@ class InputFrame(ttk.Labelframe):
 		self.directory_items.remove(item)
 		self.paths.remove(abspath(item.path))
 		logger.info(f'input directory removed: {item.path}')
+		self.__start_scan()
 		self.__layout_items()
 		
 	def __layout_items(self):
@@ -121,4 +130,4 @@ class InputFrame(ttk.Labelframe):
 			item.grid(column=0, row=row, sticky='EW')
 			row += 1
 		logger.info(f'layed out {row} input items')
-		self.update_idletasks()
+		self.update()
