@@ -74,7 +74,7 @@ class InputFrame(ttk.Labelframe):
 	def should_scan(self, path:PathLike):
 		return abspath(path) not in self.paths
 
-	def add_directory(self, directory:PathLike=None):
+	def add_directory(self, directory:PathLike=None)->bool:
 		logger = getLogger(__name__)
 
 		if directory == None:
@@ -82,21 +82,27 @@ class InputFrame(ttk.Labelframe):
 			directory = filedialog.askdirectory(title='Input Directory to Scan', mustexist=True)
 			if directory == '':
 				logger.info('no input directory selected')
-				return
+				return False
 		
 		if not self.should_scan(directory):
 			logger.warning(f'duplicate input directory given: {directory}')
-			return
+			return False
 			
 		if not is_directory(directory):
 			logger.warning(f'non-directory given as input directory: {directory}')
-			return
+			return False
 		
-		item = InputDirectoryItem(directory, self.should_scan, self.remove_directory, self.add_files, self.add_directory, self.content_frame)
+		try:
+			item = InputDirectoryItem(directory, self.should_scan, self.remove_directory, self.add_files, self.add_directory, self.content_frame)
+		except OSError as x:
+			logger.error(f'failed to add input directory: {directory}', exc_info=x)
+			return False
+
 		self.directory_items.append(item)
 		self.paths.add(abspath(directory))
 		logger.info(f'input directory added: {directory}')
 		self.__layout_items()
+		return True
 
 	def remove_directory(self, item:InputDirectoryItem):
 		logger = getLogger(__name__)
@@ -115,3 +121,4 @@ class InputFrame(ttk.Labelframe):
 			item.grid(column=0, row=row, sticky='EW')
 			row += 1
 		logger.info(f'layed out {row} input items')
+		self.update_idletasks()
