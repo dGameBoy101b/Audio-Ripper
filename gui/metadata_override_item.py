@@ -7,7 +7,7 @@ class MetadataOverrideItem:
 		self.on_remove = on_remove
 		self.key_entry = ttk.Entry(master, width=10)
 		self.value_entry = ttk.Entry(master, width=20)
-		self.remove_button = ttk.Button(master, command=self.__remove, text='-', width=2)
+		self.remove_button = ttk.Button(master, command=self.__remove, text='x', width=2)
 
 	def __remove(self):
 		if self.on_remove:
