@@ -1,5 +1,5 @@
 from tkinter import ttk
-from os import PathLike
+from os import PathLike, fspath
 import tkinter
 from logging import getLogger
 
@@ -14,7 +14,7 @@ class InputFileItem(ttk.Frame):
 		self.on_remove = on_remove
 		logger.debug('setup input file item variables')
 
-		self.variable = tkinter.StringVar(master=self, value=str(path))
+		self.variable = tkinter.StringVar(master=self, value=fspath(path))
 		self.text = ttk.Entry(self, textvariable=self.variable, width=30, state='readonly')
 		self.remove_button = ttk.Button(self, text='x', command=self.remove, width=2)
 		logger.debug('created input file item children')

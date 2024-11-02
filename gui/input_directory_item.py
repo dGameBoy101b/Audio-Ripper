@@ -1,6 +1,6 @@
-from os import PathLike, scandir, listdir
+from os import PathLike, scandir, listdir, fspath
 from tkinter import ttk
-from asyncio import create_task
+from asyncio import create_task, sleep
 from typing import Callable
 from ..scan_for_audio import is_audio, is_directory
 from tkinter import StringVar
@@ -19,7 +19,7 @@ class InputDirectoryItem(ttk.Frame):
 		self.on_directory = on_directory
 		logger.debug('setup input directory item variables')
 
-		self.variable = StringVar(self, value=str(path))
+		self.variable = StringVar(self, value=fspath(path))
 		self.text = ttk.Entry(self, textvariable=self.variable, state='readonly', width=30)
 		self.remove_button = ttk.Button(self, text='x', command=self.remove, width=2)
 		self.progress_bar = ttk.Progressbar(self, orient='horizontal', mode='determinate', maximum=len(listdir(path)))
@@ -27,7 +27,7 @@ class InputDirectoryItem(ttk.Frame):
 
 		self.text.grid(column=0, row=0, sticky='EW')
 		self.remove_button.grid(column=1, row=0)
-		self.progress_bar.grid(column=0, columnspan=1, row=1, sticky='EW')
+		self.progress_bar.grid(column=0, columnspan=2, row=1, sticky='EW')
 		self.columnconfigure(0, weight=1)
 		logger.debug('layed out input directory item')
 		
@@ -48,6 +48,7 @@ class InputDirectoryItem(ttk.Frame):
 				except RuntimeError as x:
 					logger.error(exc_info=x)
 				self.progress_bar.step()
+				await sleep(.05)
 
 	def remove(self):
 		logger = getLogger(__name__)
