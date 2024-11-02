@@ -2,15 +2,15 @@ from tkinter import ttk
 from .settings_frame import SettingsFrame
 from .input_frame import InputFrame
 from .output_frame import OutputFrame
-from .async_tk import AsyncTk
+#from .async_tk import AsyncTk
 import logging
 from os import path
 
-class AudioRipperGUI(ttk.Frame):
+class AudioRipperGUI(ttk.Panedwindow):
 
 	def __init__(self, master=None):
 		logger = logging.getLogger(__name__)
-		ttk.Frame.__init__(self, master)
+		super().__init__(master, orient='horizontal')
 		logger.debug('created audio ripper gui')
 
 		self.settingsFrame = SettingsFrame(self)
@@ -19,11 +19,9 @@ class AudioRipperGUI(ttk.Frame):
 		logger.debug('created audio ripper gui children')
 
 		self.grid(sticky='NSEW')
-		self.rowconfigure(0, weight=1)
-		self.columnconfigure([0,1,2], weight=1)
-		self.settingsFrame.grid(column=0, row=0, sticky='NSEW')
-		self.inputFrame.grid(column=1, row=0, sticky='NSEW')
-		self.outputFrame.grid(column=2, row=0, sticky='NSEW')
+		self.add(self.settingsFrame, weight=1)
+		self.add(self.inputFrame, weight=1)
+		self.add(self.outputFrame, weight=1)
 		logger.debug('layed out audio ripper gui')
 
 	def configure_window(self):
