@@ -1,9 +1,8 @@
 from os import PathLike, scandir, listdir, fspath
 from tkinter import ttk
-from asyncio import create_task, sleep
 from typing import Callable
 from ..scan_for_audio import is_audio, is_directory
-from tkinter import StringVar
+from tkinter import StringVar, DoubleVar, IntVar
 from logging import getLogger
 
 class InputDirectoryItem(ttk.Frame):
@@ -19,10 +18,12 @@ class InputDirectoryItem(ttk.Frame):
 		self.on_directory = on_directory
 		logger.debug('setup input directory item variables')
 
-		self.variable = StringVar(self, value=fspath(path))
-		self.text = ttk.Entry(self, textvariable=self.variable, state='readonly', width=30)
+		self.text_variable = StringVar(self, value=fspath(path))
+		self.text = ttk.Entry(self, textvariable=self.text_variable, state='readonly', width=30)
 		self.remove_button = ttk.Button(self, text='x', command=self.remove, width=2)
-		self.progress_bar = ttk.Progressbar(self, orient='horizontal', mode='determinate', maximum=len(listdir(path)))
+		self.progress_variable = IntVar(self)
+		self.progress_max = len(listdir(path))
+		self.progress_bar = ttk.Progressbar(self, orient='horizontal', mode='determinate', maximum=self.progress_max, variable=self.progress_variable)
 		logger.debug('created input directory item children')
 
 		self.text.grid(column=0, row=0, sticky='EW')
@@ -31,29 +32,45 @@ class InputDirectoryItem(ttk.Frame):
 		self.columnconfigure(0, weight=1)
 		logger.debug('layed out input directory item')
 		
-		self.task = create_task(self.__scan())
+		self.scanner = scandir(self.path)
+		self.__schedule_next()
 		logger.info(f'scanning directory: {path}')
 
-	async def __scan(self):
+	def __schedule_next(self):
+		self.task_id = self.after(200, self.__scan)
+
+	def __scan(self):
 		logger = getLogger(__name__)
-		with scandir(self.path) as scan:
-			for entry in scan:
-				try:
-					if self.on_directory is not None and is_directory(entry):
-						logger.debug(f'found another directory: {entry}')
-						self.on_directory(entry)
-					if self.on_audio is not None and is_audio(entry):
-						logger.debug(f'found an audio file: {entry}')
-						self.on_audio(entry)
-				except RuntimeError as x:
-					logger.error(exc_info=x)
-				self.progress_bar.step()
-				await sleep(.05)
+
+		try:
+			entry = next(self.scanner)
+		except StopIteration:
+			self.task_id = None
+			logger.info(f'scan complete: {self.path}')
+			return
+		
+		try:
+			if self.on_directory is not None and is_directory(entry):
+				logger.debug(f'found another directory: {entry}')
+				self.on_directory(entry)
+			if self.on_audio is not None and is_audio(entry):
+				logger.debug(f'found an audio file: {entry}')
+				self.on_audio(entry)
+		except RuntimeError as x:
+			logger.error(exc_info=x)
+		self.progress_variable.set(self.progress_variable.get() + 1)
+		logger.debug(f'progressed bar: {self.progress_variable.get()} / {self.progress_max}')
+		self.__schedule_next()
+		self.update()
 
 	def remove(self):
 		logger = getLogger(__name__)
-		self.task.cancel()
 		if self.on_remove:
 			self.on_remove(self)
 		self.destroy()
 		logger.debug(f'removed input directory: {self.path}')
+
+	def destroy(self):
+		if self.task_id is not None:
+			self.after_cancel(self.task_id)
+		super().destroy()

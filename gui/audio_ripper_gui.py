@@ -39,13 +39,13 @@ def main():
 	logger = logging.getLogger(__name__)
 	logger.debug('configured logging')
 
-	tk = AsyncTk()
+	#tk = AsyncTk()
 	app = AudioRipperGUI()
 	app.configure_window()
 	logger.debug('configured audio ripper gui')
 
 	logger.debug('starting audio ripper gui main loop...')
-	tk.mainloop()
+	app.mainloop()
 
 if __name__ == '__main__':
 	main()
