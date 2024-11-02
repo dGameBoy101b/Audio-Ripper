@@ -6,6 +6,7 @@ from ..scan_for_audio import is_directory
 from .input_file_item import InputFileItem
 from .input_directory_item import InputDirectoryItem
 from logging import getLogger
+from os.path import abspath
 
 class InputFrame(ttk.Labelframe):
 
@@ -17,6 +18,7 @@ class InputFrame(ttk.Labelframe):
 
 		self.directory_items = list()
 		self.file_items = list()
+		self.paths = set()
 		logger.debug('setup input frame variables')
 
 		self.header_frame = ttk.Frame(self)
@@ -39,47 +41,67 @@ class InputFrame(ttk.Labelframe):
 
 	def add_files(self, *filenames):
 		logger = getLogger(__name__)
+
 		if len(filenames) < 1:
 			logger.info('opening input files dialog')
 			filenames = filedialog.askopenfilenames(title='Input Audio Files')
 			if filenames == '':
 				logger.info('no input files selected')
 				return
+			
 		for filename in filenames:
+			if not self.should_scan(filename):
+				logger.warning(f'duplicate input file skipped: {filename}')
+				continue
 			if not is_audio(filename):
 				logger.warning(f'non audio input file skipped: {filename}')
 				continue
 			item = InputFileItem(filename, self.content_frame, self.remove_file)
 			self.file_items.append(item)
+			self.paths.add(abspath(filename))
 			logger.info(f'audio input file listed: {filename}')
+
 		self.__layout_items()
 
 
 	def remove_file(self, item:InputFileItem):
 		logger = getLogger(__name__)
 		self.file_items.remove(item)
+		self.paths.remove(abspath(item.path))
 		logger.info(f'input file removed: {item.path}')
 		self.__layout_items()
 
+	def should_scan(self, path:PathLike):
+		return abspath(path) not in self.paths
+
 	def add_directory(self, directory:PathLike=None):
 		logger = getLogger(__name__)
+
 		if directory == None:
 			logger.info('opening scan directory dialog')
 			directory = filedialog.askdirectory(title='Input Directory to Scan', mustexist=True)
 			if directory == '':
 				logger.info('no input directory selected')
 				return
+		
+		if not self.should_scan(directory):
+			logger.warning(f'duplicate input directory given: {directory}')
+			return
+			
 		if not is_directory(directory):
 			logger.warning(f'non-directory given as input directory: {directory}')
 			return
-		item = InputDirectoryItem(directory, self.remove_directory, self.add_files, self.add_directory, self.content_frame)
+		
+		item = InputDirectoryItem(directory, self.should_scan, self.remove_directory, self.add_files, self.add_directory, self.content_frame)
 		self.directory_items.append(item)
+		self.paths.add(abspath(directory))
 		logger.info(f'input directory added: {directory}')
 		self.__layout_items()
 
 	def remove_directory(self, item:InputDirectoryItem):
 		logger = getLogger(__name__)
 		self.directory_items.remove(item)
+		self.paths.remove(abspath(item.path))
 		logger.info(f'input directory removed: {item.path}')
 		self.__layout_items()
 		
