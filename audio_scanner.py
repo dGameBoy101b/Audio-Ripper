@@ -100,12 +100,15 @@ class AudioScanner():
 		self.on_skip(self.__current_directory, self.__current_path)
 
 	def close_current_directory(self):
+		logger = getLogger(__name__)
 		if self.__scanner is not None:
 			self.__scanner.close()
 			self.__scanner = None
+			logger.info(f'closed directory: {abspath(self.__current_directory)}')
 			self.__current_directory = None
 			self.__current_path = None
 			self.input_directories.task_done()
+			logger.debug(f'{self.input_directories.unfinished_tasks} unfinished directories')
 
 	def __del__(self):
 		self.close_current_directory()

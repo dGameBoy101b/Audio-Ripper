@@ -44,5 +44,6 @@ class InputDirectoryItem(ttk.Frame):
 
 	def increment_progress(self):
 		logger = getLogger(__name__)
-		self.progress.value_variable.set(self.progress.value_variable.get()+1)
-		logger.debug(f'progress incremented on directory: {abspath(self.path)}')
+		value = self.progress.value_variable.get()+1
+		self.progress.value_variable.set(value)
+		logger.debug(f'progress incremented on directory to {value} / {self.progress.maximum}: {abspath(self.path)}')

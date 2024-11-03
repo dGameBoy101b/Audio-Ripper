@@ -41,12 +41,13 @@ class InputFrame(ttk.Labelframe):
 		logger.debug('layed out input frame')
 
 	def __on_subdirectory(self, directory:PathLike, subdirectory:PathLike):
-		self.add_directory(subdirectory)
 		self.__increment_progress(directory)
+		self.add_directory(subdirectory, False)
 
 	def __on_audio(self, directory:PathLike, audio:PathLike):
-		self.add_files(audio)
 		self.__increment_progress(directory)
+		self.scanner.output_audio.task_done()
+		self.add_files(audio)
 
 	def __on_skip(self, directory:PathLike, path:PathLike|None):
 		if path is None:
@@ -125,7 +126,7 @@ class InputFrame(ttk.Labelframe):
 			self.after_cancel(self.__scan_task_id)
 			self.__scan_task_id = None
 
-	def add_directory(self, directory:PathLike=None)->bool:
+	def add_directory(self, directory:PathLike=None, enqueue:bool=True)->bool:
 		logger = getLogger(__name__)
 
 		if directory == None:
@@ -151,7 +152,8 @@ class InputFrame(ttk.Labelframe):
 
 		self.directory_items.append(item)
 		self.paths.add(abspath(directory))
-		self.scanner.input_directories.put(directory)
+		if enqueue:
+			self.scanner.input_directories.put(directory)
 		logger.info(f'input directory added: {abspath(directory)}')
 		self.schedule_scan()
 		self.__layout_items()
