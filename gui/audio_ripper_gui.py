@@ -1,3 +1,4 @@
+import logging.config
 from tkinter import ttk
 from .settings_frame import SettingsFrame
 from .input_frame import InputFrame
@@ -5,6 +6,7 @@ from .output_frame import OutputFrame
 #from .async_tk import AsyncTk
 import logging
 from os import path
+from .configure_logging import config_dict
 
 class AudioRipperGUI(ttk.Panedwindow):
 
@@ -33,7 +35,7 @@ class AudioRipperGUI(ttk.Panedwindow):
 		logger.debug(f'configured audio ripper gui window: {type(window)}')
 
 def main():
-	logging.basicConfig(filename=path.join(path.dirname(__file__), "./rip_gui.log"), filemode='w', level=logging.DEBUG, style="{", format="[{asctime}]{levelname}:{name}:{msg}")
+	logging.config.dictConfig(config_dict)
 	logger = logging.getLogger(__name__)
 	logger.debug('configured logging')
 
