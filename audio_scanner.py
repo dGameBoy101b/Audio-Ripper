@@ -10,8 +10,9 @@ class AudioScanner():
 	def __init__(self, input_directories:Queue[PathLike]=None):
 		logger = getLogger(__name__)
 		self.output_audio = Queue()
-		self.scanner: Generator[PathLike] = None
-		self.__current_directory: PathLike = None
+		self.__scanner: Generator[PathLike]|None = None
+		self.__current_directory: PathLike|None = None
+		self.__current_path: PathLike|None = None
 		if isinstance(input_directories, Queue):
 			self.input_directories = input_directories
 			logger.debug(f'inherited input directories queue: {input_directories}')
@@ -41,16 +42,19 @@ class AudioScanner():
 	
 	def on_subdirectory(self, directory:PathLike, subdirectory:PathLike):
 		self.input_directories.put(subdirectory)
+		self.__current_path = None
 
 	def on_audio(self, directory:PathLike, audio:PathLike):
 		self.output_audio.put(audio)
+		self.__current_path = None
 
 	def on_start_directory(self, directory:PathLike):
+		self.__current_path = None
 		self.__current_directory = directory
-		self.scanner = scandir(directory)
+		self.__scanner = scandir(directory)
 
 	def on_skip(self, directory:PathLike, path:PathLike|None):
-		pass
+		self.__current_path = None
 
 	def on_finish_directory(self, directory:PathLike):
 		self.close_current_directory()
@@ -58,46 +62,49 @@ class AudioScanner():
 	def continue_scan(self):
 		logger = getLogger(__name__)
 
-		while self.scanner is None:
+		if self.__scanner is None:
 			if self.input_directories.empty():
 				raise StopIteration()
 			directory = self.input_directories.get()
 			if self.should_skip(directory):
 				logger.debug(f'skipped scanning directory: {directory}')
 				self.on_skip(directory, None)
-				continue
+				return
 			logger.info(f'started scanning directory: {directory}')
 			self.on_start_directory(directory)
-
-		try:
-			path = next(self.scanner)
-		except StopIteration:
-			logger.info(f'finished scanning directory: {self.__current_directory}')
-			self.on_finish_directory(self.__current_directory)
 			return
+
+		if self.__current_path is None:
+			try:
+				self.__current_path = next(self.__scanner)
+			except StopIteration:
+				logger.info(f'finished scanning directory: {self.__current_directory}')
+				self.on_finish_directory(self.__current_directory)
+				return
 		
-		if not self.should_skip(path):
-			if self.is_directory(path):
-				logger.debug(f'found directory: {path}')
-				self.on_subdirectory(self.__current_directory, path)
+		if not self.should_skip(self.__current_path):
+			if self.is_directory(self.__current_path):
+				logger.debug(f'found directory: {self.__current_path}')
+				self.on_subdirectory(self.__current_directory, self.__current_path)
 				return
 			
 			try:
-				if self.is_audio(path):
-					logger.debug(f'found audio: {path}')
-					self.on_audio(self.__current_directory, path)
+				if self.is_audio(self.__current_path):
+					logger.debug(f'found audio: {self.__current_path}')
+					self.on_audio(self.__current_directory, self.__current_path)
 					return
 			except RuntimeError as x:
-				logger.error(f'failed to identify audio: {path}', exc_info=x)
+				logger.error(f'failed to identify audio: {self.__current_path}', exc_info=x)
 		
-		logger.debug(f'skipped scanned path: {path}')
-		self.on_skip(self.__current_directory, path)
+		logger.debug(f'skipped scanned path: {self.__current_path}')
+		self.on_skip(self.__current_directory, self.__current_path)
 
 	def close_current_directory(self):
-		if self.scanner is not None:
-			self.scanner.close()
-			self.scanner = None
+		if self.__scanner is not None:
+			self.__scanner.close()
+			self.__scanner = None
 			self.__current_directory = None
+			self.__current_path = None
 			self.input_directories.task_done()
 
 	def __del__(self):
