@@ -25,6 +25,8 @@ class InputFrame(ttk.Labelframe):
 		self.header_frame = ttk.Frame(self)
 		self.add_files_button = ttk.Button(self.header_frame, command=self.add_files, text='Add Files')
 		self.add_directories_button = ttk.Button(self.header_frame, command=self.add_directory, text='Scan Directory')
+		self.clear_files_button = ttk.Button(self.header_frame, command=self.remove_all_files, text='Clear Files')
+		self.clear_directories_button = ttk.Button(self.header_frame, command=self.remove_all_directories, text='Clear Directories')
 		self.content_frame = ttk.Frame(self)
 		logger.debug('created input frame children')
 
@@ -35,6 +37,8 @@ class InputFrame(ttk.Labelframe):
 
 		self.add_files_button.grid(row=0, column=0, sticky='EW')
 		self.add_directories_button.grid(row=0, column=1, sticky='EW')
+		self.clear_files_button.grid(row=1, column=0, sticky='EW')
+		self.clear_directories_button.grid(row=1, column=1, sticky='EW')
 		self.header_frame.columnconfigure([0,1], weight=1)
 
 		self.content_frame.columnconfigure(0, weight=1)
@@ -92,6 +96,17 @@ class InputFrame(ttk.Labelframe):
 		self.file_items.remove(item)
 		self.paths.remove(abspath(item.path))
 		logger.info(f'input file removed: {abspath(item.path)}')
+		self.__layout_items()
+
+	def remove_all_files(self):
+		logger = getLogger(__name__)
+		paths = set()
+		for item in self.file_items:
+			item.destroy()
+			paths.add(abspath(item.path))
+		self.file_items.clear()
+		self.paths -= paths
+		logger.info(f'cleared all {len(paths)} files')
 		self.__layout_items()
 
 	def should_scan(self, path:PathLike):
@@ -165,6 +180,18 @@ class InputFrame(ttk.Labelframe):
 		self.paths.remove(abspath(item.path))
 		logger.info(f'input directory removed: {abspath(item.path)}')
 		self.schedule_scan()
+		self.__layout_items()
+
+	def remove_all_directories(self):
+		logger = getLogger(__name__)
+		paths = set()
+		self.cancel_scan()
+		for item in self.directory_items:
+			item.destroy()
+			paths.add(abspath(item.path))
+		self.directory_items.clear()
+		self.paths -= paths
+		logger.info(f'cleared all {len(paths)} directories')
 		self.__layout_items()
 		
 	def __layout_items(self):
