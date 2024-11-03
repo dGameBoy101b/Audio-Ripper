@@ -1,14 +1,13 @@
-import os
-import os.path
-import logging
 from collections.abc import Iterator
 from .audio_scanner import AudioScanner
+from os import PathLike
 
-def scan_for_audio(*root_paths:list[os.PathLike])->Iterator[os.PathLike]:
+def scan_for_audio(*root_paths:list[PathLike])->Iterator[PathLike]:
 	with AudioScanner(root_paths) as scanner:
 		yield from scanner
 
 if __name__ == '__main__':
+	import logging
 	import sys
 	logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 	TEST_DIR = './test_dir'
