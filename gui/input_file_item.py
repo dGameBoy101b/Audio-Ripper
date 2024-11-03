@@ -6,7 +6,7 @@ from os.path import abspath
 
 class InputFileItem(ttk.Frame):
 
-	def __init__(self, path: PathLike, master=None, on_remove=None, **kwargs):
+	def __init__(self, path: PathLike, master=None, *, on_remove=None, **kwargs):
 		logger = getLogger(__name__)
 		super().__init__(master, **kwargs)
 		logger.debug('created input file item')

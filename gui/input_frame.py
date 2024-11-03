@@ -1,12 +1,14 @@
 from os import PathLike
 from tkinter import ttk
 from tkinter import filedialog
+from typing import Callable
 from ..scan_for_audio import is_audio
 from ..scan_for_audio import is_directory
 from .input_file_item import InputFileItem
 from .input_directory_item import InputDirectoryItem
 from logging import getLogger
 from os.path import abspath
+from .callback_audio_scanner import CallbackAudioScanner
 
 class InputFrame(ttk.Labelframe):
 
@@ -19,6 +21,8 @@ class InputFrame(ttk.Labelframe):
 		self.directory_items:list[InputDirectoryItem] = list()
 		self.file_items:list[InputFileItem] = list()
 		self.paths:set[str] = set()
+		self.__scan_task_id:str|None = None
+		self.scanner = CallbackAudioScanner(on_subdirectory=self.__on_subdirectory, on_audio=self.__on_audio, on_skip=self.__on_skip, should_skip=self.should_skip)
 		logger.debug('setup input frame variables')
 
 		self.header_frame = ttk.Frame(self)
@@ -39,6 +43,28 @@ class InputFrame(ttk.Labelframe):
 		self.content_frame.columnconfigure(0, weight=1)
 		logger.debug('layed out input frame')
 
+	def __on_subdirectory(self, directory:PathLike, subdirectory:PathLike):
+		self.add_directory(subdirectory)
+		self.__increment_progress(directory)
+
+	def __on_audio(self, directory:PathLike, audio:PathLike):
+		self.add_files(audio)
+		self.__increment_progress(directory)
+
+	def __on_skip(self, directory:PathLike, path:PathLike|None):
+		if path is None:
+			self.remove_directory(directory)
+		else:
+			self.__increment_progress(directory)
+
+	def __increment_progress(self, directory:PathLike):
+		logger = getLogger(__name__)
+		for item in self.directory_items:
+			if abspath(item.path) == abspath(directory):
+				item.increment_progress()
+				return
+		logger.warning(f'attempted to increment progress of missing directory: {directory}')
+
 	def add_files(self, *filenames):
 		logger = getLogger(__name__)
 
@@ -50,13 +76,13 @@ class InputFrame(ttk.Labelframe):
 				return
 			
 		for filename in filenames:
-			if not self.should_scan(filename):
+			if self.scanner.should_skip(filename):
 				logger.warning(f'duplicate input file skipped: {filename}')
 				continue
-			if not is_audio(filename):
+			if not self.scanner.is_audio(filename):
 				logger.warning(f'non audio input file skipped: {filename}')
 				continue
-			item = InputFileItem(filename, self.content_frame, self.remove_file)
+			item = InputFileItem(filename, self.content_frame, on_remove=self.remove_file)
 			self.file_items.append(item)
 			self.paths.add(abspath(filename))
 			logger.info(f'audio input file listed: {filename}')
@@ -70,16 +96,33 @@ class InputFrame(ttk.Labelframe):
 		logger.info(f'input file removed: {item.path}')
 		self.__layout_items()
 
-	def should_scan(self, path:PathLike):
-		return abspath(path) not in self.paths
+	def should_skip(self, path:PathLike):
+		return abspath(path) in self.paths
 
-	def __start_scan(self, milliseconds:int=0)->bool:
+	def __continue_scan(self):
+		logger = getLogger(__name__)
+		try:
+			self.scanner.continue_scan()
+		except StopIteration:
+			logger.warning('attempted to continue scan while input directory queue empty')
+
+	def schedule_scan(self, milliseconds:int=0)->bool:
+		logger = getLogger(__name__)
 		if len(self.directory_items) < 1:
 			return False
-		if self.directory_items[0].is_scheduled():
+		if self.is_scan_scheduled():
 			return True
-		self.directory_items[0].schedule_next(milliseconds)
+		self.__scan_task_id = self.after(milliseconds, self.__continue_scan)
+		logger.debug(f'scheduled directory scan in {milliseconds} milliseconds')
 		return True
+	
+	def is_scan_scheduled(self)->bool:
+		return self.__scan_task_id is not None
+	
+	def cancel_scan(self):
+		if self.is_scan_scheduled():
+			self.after_cancel(self.__scan_task_id)
+			self.__scan_task_id = None
 
 	def add_directory(self, directory:PathLike=None)->bool:
 		logger = getLogger(__name__)
@@ -91,24 +134,25 @@ class InputFrame(ttk.Labelframe):
 				logger.info('no input directory selected')
 				return False
 		
-		if not self.should_scan(directory):
+		if self.scanner.should_skip(directory):
 			logger.warning(f'duplicate input directory given: {directory}')
 			return False
 			
-		if not is_directory(directory):
+		if not self.scanner.is_directory(directory):
 			logger.warning(f'non-directory given as input directory: {directory}')
 			return False
 		
 		try:
-			item = InputDirectoryItem(directory, self.should_scan, self.remove_directory, self.add_files, self.add_directory, self.content_frame)
+			item = InputDirectoryItem(directory, self.content_frame, on_remove=self.remove_directory)
 		except OSError as x:
 			logger.error(f'failed to add input directory: {directory}', exc_info=x)
 			return False
 
 		self.directory_items.append(item)
 		self.paths.add(abspath(directory))
+		self.scanner.input_directories.put(directory)
 		logger.info(f'input directory added: {directory}')
-		self.__start_scan()
+		self.schedule_scan()
 		self.__layout_items()
 		return True
 
@@ -117,7 +161,7 @@ class InputFrame(ttk.Labelframe):
 		self.directory_items.remove(item)
 		self.paths.remove(abspath(item.path))
 		logger.info(f'input directory removed: {item.path}')
-		self.__start_scan()
+		self.schedule_scan()
 		self.__layout_items()
 		
 	def __layout_items(self):
@@ -131,3 +175,7 @@ class InputFrame(ttk.Labelframe):
 			row += 1
 		logger.info(f'layed out {row} input items')
 		self.update()
+
+	def destroy(self):
+		self.cancel_scan()
+		return super().destroy()
