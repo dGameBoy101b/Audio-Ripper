@@ -33,16 +33,16 @@ class InputDirectoryItem(ttk.Frame):
 		
 		self.scanner = scandir(self.path)
 		self.task_id = None
-		logger.info(f'queued input directory scan: {path}')
+		logger.info(f'queued input directory scan: {abspath(path)}')
 
 	def remove(self):
 		logger = getLogger(__name__)
 		if self.on_remove:
 			self.on_remove(self)
 		self.destroy()
-		logger.debug(f'removed input directory: {self.path}')
+		logger.debug(f'removed input directory: {abspath(self.path)}')
 
 	def increment_progress(self):
 		logger = getLogger(__name__)
 		self.progress.value_variable.set(self.progress.value_variable.get()+1)
-		logger.debug(f'progress incremented on directory: {self.path}')
+		logger.debug(f'progress incremented on directory: {abspath(self.path)}')

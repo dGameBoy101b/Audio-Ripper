@@ -1,3 +1,4 @@
+from logging import getLogger
 from tkinter import ttk, DoubleVar, IntVar
 from typing import Callable
 
@@ -21,7 +22,11 @@ class CountedProgressbar(ttk.Frame):
 		self.columnconfigure(0, weight=1)
 
 	def __update(self, var, index, mode):
-		self.counter['text'] = self.to_string(self.value_variable.get(), self.maximum)
+		logger = getLogger(__name__)
+		value = self.value_variable.get()
+		self.counter['text'] = self.to_string(value, self.maximum)
+		if value > self.maximum:
+			logger.warning(f'progress value exceeded maximum: {value} / {self.maximum}')
 
 	def destroy(self):
 		self.value_variable.trace_remove('write', self.__callback_name)

@@ -2,7 +2,7 @@ from logging import getLogger
 from os import PathLike, scandir
 from queue import Queue
 from typing import Generator, Self
-from os.path import isdir, isfile
+from os.path import isdir, isfile, abspath
 from ffprobe import FFProbe
 
 class AudioScanner():
@@ -33,7 +33,7 @@ class AudioScanner():
 		logger = getLogger(__name__)
 		if not isfile(path):
 			return False
-		logger.debug(f'probing file: {path}')
+		logger.debug(f'probing file: {abspath(path)}')
 		try:
 			probe = FFProbe(path)
 		except Exception as x:
@@ -67,10 +67,10 @@ class AudioScanner():
 				raise StopIteration()
 			directory = self.input_directories.get()
 			if self.should_skip(directory):
-				logger.debug(f'skipped scanning directory: {directory}')
+				logger.debug(f'skipped scanning directory: {abspath(directory)}')
 				self.on_skip(directory, None)
 				return
-			logger.info(f'started scanning directory: {directory}')
+			logger.info(f'started scanning directory: {abspath(directory)}')
 			self.on_start_directory(directory)
 			return
 
@@ -78,25 +78,25 @@ class AudioScanner():
 			try:
 				self.__current_path = next(self.__scanner)
 			except StopIteration:
-				logger.info(f'finished scanning directory: {self.__current_directory}')
+				logger.info(f'finished scanning directory: {abspath(self.__current_directory)}')
 				self.on_finish_directory(self.__current_directory)
 				return
 		
 		if not self.should_skip(self.__current_path):
 			if self.is_directory(self.__current_path):
-				logger.debug(f'found directory: {self.__current_path}')
+				logger.debug(f'found directory: {abspath(self.__current_path)}')
 				self.on_subdirectory(self.__current_directory, self.__current_path)
 				return
 			
 			try:
 				if self.is_audio(self.__current_path):
-					logger.debug(f'found audio: {self.__current_path}')
+					logger.debug(f'found audio: {abspath(self.__current_path)}')
 					self.on_audio(self.__current_directory, self.__current_path)
 					return
 			except RuntimeError as x:
-				logger.error(f'failed to identify audio: {self.__current_path}', exc_info=x)
+				logger.error(f'failed to identify audio: {abspath(self.__current_path)}', exc_info=x)
 		
-		logger.debug(f'skipped scanned path: {self.__current_path}')
+		logger.debug(f'skipped scanned path: {abspath(self.__current_path)}')
 		self.on_skip(self.__current_directory, self.__current_path)
 
 	def close_current_directory(self):

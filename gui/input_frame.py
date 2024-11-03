@@ -74,15 +74,15 @@ class InputFrame(ttk.Labelframe):
 			
 		for filename in filenames:
 			if not self.should_scan(filename):
-				logger.warning(f'duplicate input file skipped: {filename}')
+				logger.warning(f'duplicate input file skipped: {abspath(filename)}')
 				continue
 			if not self.scanner.is_audio(filename):
-				logger.warning(f'non audio input file skipped: {filename}')
+				logger.warning(f'non audio input file skipped: {abspath(filename)}')
 				continue
 			item = InputFileItem(filename, self.content_frame, on_remove=self.remove_file)
 			self.file_items.append(item)
 			self.paths.add(abspath(filename))
-			logger.info(f'audio input file listed: {filename}')
+			logger.info(f'audio input file listed: {abspath(filename)}')
 
 		self.__layout_items()
 
@@ -90,7 +90,7 @@ class InputFrame(ttk.Labelframe):
 		logger = getLogger(__name__)
 		self.file_items.remove(item)
 		self.paths.remove(abspath(item.path))
-		logger.info(f'input file removed: {item.path}')
+		logger.info(f'input file removed: {abspath(item.path)}')
 		self.__layout_items()
 
 	def should_scan(self, path:PathLike):
@@ -104,6 +104,7 @@ class InputFrame(ttk.Labelframe):
 			logger.debug('continued input directory scan')
 		except StopIteration:
 			logger.warning('attempted to continue scan while input directory queue empty')
+			return
 		self.schedule_scan()
 
 	def schedule_scan(self, milliseconds:int=0)->bool:
@@ -135,23 +136,23 @@ class InputFrame(ttk.Labelframe):
 				return False
 		
 		if not self.should_scan(directory):
-			logger.warning(f'duplicate input directory given: {directory}')
+			logger.warning(f'duplicate input directory given: {abspath(directory)}')
 			return False
 			
 		if not self.scanner.is_directory(directory):
-			logger.warning(f'non-directory given as input directory: {directory}')
+			logger.warning(f'non-directory given as input directory: {abspath(directory)}')
 			return False
 		
 		try:
 			item = InputDirectoryItem(directory, self.content_frame, on_remove=self.remove_directory)
 		except OSError as x:
-			logger.error(f'failed to add input directory: {directory}', exc_info=x)
+			logger.error(f'failed to add input directory: {abspath(directory)}', exc_info=x)
 			return False
 
 		self.directory_items.append(item)
 		self.paths.add(abspath(directory))
 		self.scanner.input_directories.put(directory)
-		logger.info(f'input directory added: {directory}')
+		logger.info(f'input directory added: {abspath(directory)}')
 		self.schedule_scan()
 		self.__layout_items()
 		return True
@@ -160,7 +161,7 @@ class InputFrame(ttk.Labelframe):
 		logger = getLogger(__name__)
 		self.directory_items.remove(item)
 		self.paths.remove(abspath(item.path))
-		logger.info(f'input directory removed: {item.path}')
+		logger.info(f'input directory removed: {abspath(item.path)}')
 		self.schedule_scan()
 		self.__layout_items()
 		
