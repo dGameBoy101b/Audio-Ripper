@@ -22,7 +22,7 @@ class InputFrame(ttk.Labelframe):
 		self.file_items:list[InputFileItem] = list()
 		self.paths:set[str] = set()
 		self.__scan_task_id:str|None = None
-		self.scanner = CallbackAudioScanner(on_subdirectory=self.__on_subdirectory, on_audio=self.__on_audio, on_skip=self.__on_skip, should_skip=self.should_skip)
+		self.scanner = CallbackAudioScanner(on_subdirectory=self.__on_subdirectory, on_audio=self.__on_audio, on_skip=self.__on_skip)
 		logger.debug('setup input frame variables')
 
 		self.header_frame = ttk.Frame(self)
@@ -76,7 +76,7 @@ class InputFrame(ttk.Labelframe):
 				return
 			
 		for filename in filenames:
-			if self.scanner.should_skip(filename):
+			if not self.should_scan(filename):
 				logger.warning(f'duplicate input file skipped: {filename}')
 				continue
 			if not self.scanner.is_audio(filename):
@@ -96,15 +96,18 @@ class InputFrame(ttk.Labelframe):
 		logger.info(f'input file removed: {item.path}')
 		self.__layout_items()
 
-	def should_skip(self, path:PathLike):
-		return abspath(path) in self.paths
+	def should_scan(self, path:PathLike):
+		return path is not None and abspath(path) not in self.paths
 
 	def __continue_scan(self):
 		logger = getLogger(__name__)
+		self.__scan_task_id = None
 		try:
 			self.scanner.continue_scan()
+			logger.debug('continued input directory scan')
 		except StopIteration:
 			logger.warning('attempted to continue scan while input directory queue empty')
+		self.schedule_scan()
 
 	def schedule_scan(self, milliseconds:int=0)->bool:
 		logger = getLogger(__name__)
@@ -134,7 +137,7 @@ class InputFrame(ttk.Labelframe):
 				logger.info('no input directory selected')
 				return False
 		
-		if self.scanner.should_skip(directory):
+		if not self.should_scan(directory):
 			logger.warning(f'duplicate input directory given: {directory}')
 			return False
 			
