@@ -9,7 +9,7 @@ class CallbackAudioScanner(AudioScanner):
 			  on_start_directory:Callable[[PathLike],None]=None, on_finish_directory:Callable[[PathLike],None]=None,
 			  is_directory:Callable[[PathLike],bool]=None, on_subdirectory:Callable[[PathLike,PathLike],None]=None, 
 			  is_audio:Callable[[PathLike],bool]=None, on_audio:Callable[[PathLike,PathLike],None]=None,
-			  should_skip:Callable[[PathLike],bool]=None, on_skip:Callable[[PathLike,PathLike],None]=None):
+			  should_skip:Callable[[PathLike],bool]=None, on_skip:Callable[[PathLike,PathLike|None],None]=None):
 		super().__init__(input_directories)
 		self.start_directory_callabck = on_start_directory
 		self.finish_directory_callback = on_finish_directory
@@ -55,8 +55,7 @@ class CallbackAudioScanner(AudioScanner):
 			return self.skip_predicate(path)
 		return super().should_skip(path)
 	
-	def on_skip(self, directory:PathLike, path:PathLike):
+	def on_skip(self, directory:PathLike, path:PathLike|None):
 		super().on_skip(directory, path)
 		if self.skip_callback is not None:
 			self.skip_callback(directory, path)
-			
