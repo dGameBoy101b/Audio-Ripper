@@ -3,6 +3,7 @@ import os.path
 import logging
 from collections.abc import Iterator
 from ffprobe import FFProbe
+from .audio_scanner import AudioScanner
 
 def is_file(path:os.PathLike)->bool:
 	return os.path.isfile(path)
@@ -22,23 +23,8 @@ def is_directory(path:os.PathLike)->bool:
 	return os.path.isdir(path)
 
 def scan_for_audio(*root_paths:list[os.PathLike])->Iterator[os.PathLike]:
-	logger = logging.getLogger(__name__)
-	to_explore=list(root_paths)
-	for directory in to_explore:
-		logger.info(f'scanning directory for audio files: {directory}')
-		with os.scandir(directory) as scan:
-			for entry in scan:
-				try:
-					if is_audio(entry):
-						logger.info(f'found audio file: {entry.path}')
-						yield entry
-					elif is_directory(entry):
-						logger.info(f'found directory: {entry.path}')
-						to_explore.append(entry.path)
-					else:
-						logger.info(f'skipped entry: {entry.path}')
-				except Exception as x:
-					logger.error(f'Failed to identify directory entry: {entry.path}', exc_info=x)
+	with AudioScanner(root_paths) as scanner:
+		yield from scanner
 
 if __name__ == '__main__':
 	import sys
