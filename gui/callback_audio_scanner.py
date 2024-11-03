@@ -45,10 +45,10 @@ class CallbackAudioScanner(AudioScanner):
 			return self.audio_predicate(path)
 		return super().is_audio(path)
 
-	def on_audio(self, audio:PathLike):
-		super().on_audio(audio)
+	def on_audio(self, directory:PathLike, audio:PathLike):
+		super().on_audio(directory, audio)
 		if self.audio_callback is not None:
-			self.audio_callback(audio)
+			self.audio_callback(directory, audio)
 
 	def should_skip(self, path:PathLike):
 		if self.skip_predicate is not None:
