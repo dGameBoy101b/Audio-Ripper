@@ -1,14 +1,14 @@
 from concurrent.futures import Executor, wait
 import logging
 import time
-from audio_copy_job import AudioCopyJob
-from audio_scanner import AudioScanner
-from job_executor import JobExecutor
-from rip_args import RipArgs
-from rip_report import RipReport
+from .audio_copy_job import AudioCopyJob
+from .audio_scanner import AudioScanner
+from .job_executor import JobExecutor
+from .rip_args import RipArgs
+from .rip_report import RipReport
 
 
-def job_rip(args:RipArgs, executor:Executor)->RipReport:
+def rip_jobs(args:RipArgs, executor:Executor)->RipReport:
 	logger = logging.getLogger(__name__)
 	conversions = dict()
 
