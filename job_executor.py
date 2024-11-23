@@ -1,5 +1,5 @@
 from concurrent.futures import Executor, Future
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from queue import Queue
 from typing import Callable
 
@@ -7,7 +7,7 @@ from typing import Callable
 class Job:
 	function:Callable
 	args:tuple[any] = tuple()
-	kwargs:dict[any] = dict()
+	kwargs:dict[any] = field(default_factory=dict)
 
 	def execute(self):
 		self.function(*self.args, **self.kwargs)
