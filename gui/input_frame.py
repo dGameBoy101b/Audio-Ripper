@@ -97,42 +97,53 @@ class InputFrame(ttk.Labelframe):
 
 	def should_scan(self, path:PathLike):
 		return path is not None and abspath(path) not in self.paths
+	
+	def __check_audio(self)->bool:
+		logger = getLogger(__name__)
+		try:
+			audio = self.scanner.output_audio.get(False)
+		except Empty:
+			return False
+		logger.debug(f'got audio: {fspath(audio)}')
+		self.add_files(audio)
+		self.__increment_progress(dirname(audio))
+		self.scanner.output_audio.task_done()
+		return True
+		
+	def __check_subdirectories(self)->bool:
+		logger = getLogger(__name__)
+		try:
+			subdirectory = self.scanner.output_subdirectories.get(False)
+		except Empty:
+			return False
+		logger.debug(f'got subdirectory: {fspath(subdirectory)}')
+		self.add_directory(subdirectory)
+		self.__increment_progress(subdirectory)
+		self.scanner.output_subdirectories.task_done()
+		return True
+
+	def __check_skipped(self)->bool:
+		logger = getLogger(__name__)
+		try:
+			skipped = self.scanner.output_skipped.get(False)
+		except Empty:
+			return False
+		logger.debug(f'got skipped: {fspath(skipped)}')
+		if isdir(skipped):
+			self.remove_directory(skipped)
+		else:
+			self.__increment_progress(dirname(skipped))
+		self.scanner.output_skipped.task_done()
+		return True
 
 	def __check_progress(self):
 		logger = getLogger(__name__)
-
-		try:
-			audio = self.scanner.output_audio.get(False)
-			logger.debug(f'got audio: {fspath(audio)}')
-			self.add_files(audio)
-			self.__increment_progress(dirname(audio))
-			self.scanner.output_audio.task_done()
+		if self.__check_audio():
 			return
-		except Empty:
-			pass
-
-		try:
-			subdirectory = self.scanner.output_subdirectories.get(False)
-			logger.debug(f'got subdirectory: {fspath(subdirectory)}')
-			self.add_directory(subdirectory)
-			self.__increment_progress(subdirectory)
-			self.scanner.output_subdirectories.task_done()
+		if self.__check_subdirectories():
 			return
-		except Empty:
-			pass
-
-		try:
-			skipped = self.scanner.output_skipped.get(False)
-			logger.debug(f'got skipped: {fspath(skipped)}')
-			if isdir(skipped):
-				self.remove_directory(skipped)
-			else:
-				self.__increment_progress(dirname(skipped))
-			self.scanner.output_skipped.task_done()
+		if self.__check_skipped():
 			return
-		except Empty:
-			pass
-
 		logger.debug('got nothing')
 
 	def __continue_scan(self):
