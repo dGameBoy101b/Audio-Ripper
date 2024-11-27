@@ -1,13 +1,13 @@
 from logging import getLogger
 from os import PathLike, fspath, scandir
 from queue import Queue
-from typing import Generator, Self
+from typing import Callable, Generator, Self
 from os.path import isdir, isfile
 from ffprobe import FFProbe
 
 class AudioScanner():
 
-	def __init__(self, input_directories:Queue[PathLike]=None):
+	def __init__(self, input_directories:Queue[PathLike]=None, should_skip:Callable[[PathLike],bool]=None):
 		logger = getLogger(__name__)
 		self.output_audio: Queue[PathLike] = Queue()
 		self.output_skipped: Queue[PathLike] = Queue()
@@ -24,9 +24,7 @@ class AudioScanner():
 				for directory in input_directories:
 					self.input_directories.put(directory)
 				logger.debug(f'filled input directories queue: {input_directories}')
-
-	def should_skip(self, path:PathLike)->bool:
-		return False
+		self.should_skip = (lambda path: False) if should_skip is None else should_skip
 
 	def is_directory(self, path:PathLike)->bool:
 		return isdir(path)
