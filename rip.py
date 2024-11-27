@@ -7,7 +7,7 @@ from .job_executor import JobExecutor
 from .rip_args import RipArgs
 from .rip_report import RipReport
 
-def rip_jobs(args:RipArgs, executor:Executor)->RipReport:
+def rip(args:RipArgs, executor:Executor)->RipReport:
 	logger = logging.getLogger(__name__)
 	conversions = dict()
 
