@@ -33,7 +33,16 @@ class JobExecutor:
 			future = self.executor.submit(job.execute)
 			future.add_done_callback(self.__on_job_done)
 			futures.append(future)
+			if count is not None:
+				count -= 1
 		return futures
+	
+	def __enter__(self):
+		self.executor.__enter__()
+		return self
+	
+	def __exit__(self, exc_type, exc_value, traceback):
+		return self.executor.__exit__(exc_type, exc_value, traceback)
 	
 	def __del__(self):
 		self.executor.shutdown(cancel_futures=True)
