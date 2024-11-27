@@ -9,7 +9,9 @@ class AudioScanner():
 
 	def __init__(self, input_directories:Queue[PathLike]=None):
 		logger = getLogger(__name__)
-		self.output_audio = Queue()
+		self.output_audio: Queue[PathLike] = Queue()
+		self.output_skipped: Queue[PathLike] = Queue()
+		self.output_subdirectories: Queue[PathLike] = Queue()
 		self.__scanner: Generator[PathLike]|None = None
 		self.__current_directory: PathLike|None = None
 		self.__current_path: PathLike|None = None
@@ -17,7 +19,7 @@ class AudioScanner():
 			self.input_directories = input_directories
 			logger.debug(f'inherited input directories queue: {input_directories}')
 		else:
-			self.input_directories = Queue()
+			self.input_directories: Queue[PathLike] = Queue()
 			if input_directories is not None:
 				for directory in input_directories:
 					self.input_directories.put(directory)
@@ -39,25 +41,6 @@ class AudioScanner():
 		except Exception as x:
 			raise RuntimeError(f"Failed to probe file: {fspath(path)}", x)
 		return len(probe.audio) > 0
-	
-	def on_subdirectory(self, directory:PathLike, subdirectory:PathLike):
-		self.input_directories.put(subdirectory)
-		self.__current_path = None
-
-	def on_audio(self, directory:PathLike, audio:PathLike):
-		self.output_audio.put(audio)
-		self.__current_path = None
-
-	def on_start_directory(self, directory:PathLike):
-		self.__current_path = None
-		self.__current_directory = directory
-		self.__scanner = scandir(directory)
-
-	def on_skip(self, directory:PathLike, path:PathLike|None):
-		self.__current_path = None
-
-	def on_finish_directory(self, directory:PathLike):
-		self.close_current_directory()
 
 	def continue_scan(self):
 		logger = getLogger(__name__)
@@ -68,10 +51,13 @@ class AudioScanner():
 			directory = self.input_directories.get()
 			if self.should_skip(directory):
 				logger.debug(f'skipped scanning directory: {fspath(directory)}')
-				self.on_skip(directory, None)
+				self.__current_path = None
+				self.output_skipped.put(directory)
 				return
 			logger.info(f'started scanning directory: {fspath(directory)}')
-			self.on_start_directory(directory)
+			self.__current_path = None
+			self.__current_directory = directory
+			self.__scanner = scandir(directory)
 			return
 
 		if self.__current_path is None:
@@ -79,19 +65,21 @@ class AudioScanner():
 				self.__current_path = next(self.__scanner)
 			except StopIteration:
 				logger.info(f'finished scanning directory: {fspath(self.__current_directory)}')
-				self.on_finish_directory(self.__current_directory)
+				self.close_current_directory()
 				return
 		
 		if not self.should_skip(self.__current_path):
 			if self.is_directory(self.__current_path):
 				logger.debug(f'found directory: {fspath(self.__current_path)}')
-				self.on_subdirectory(self.__current_directory, self.__current_path)
+				self.output_subdirectories.put(self.__current_path)
+				self.__current_path = None
 				return
 			
 			try:
 				if self.is_audio(self.__current_path):
 					logger.debug(f'found audio: {fspath(self.__current_path)}')
-					self.on_audio(self.__current_directory, self.__current_path)
+					self.output_audio.put(self.__current_path)
+					self.__current_path = None
 					return
 			except RuntimeError as x:
 				logger.error(f'failed to identify audio: {fspath(self.__current_path)}', exc_info=x)
@@ -126,4 +114,5 @@ class AudioScanner():
 		while self.output_audio.empty():
 			self.continue_scan()
 		audio = self.output_audio.get()
+		self.output_audio.task_done()
 		return audio
