@@ -1,11 +1,12 @@
-from os import PathLike
+from os import PathLike, fspath
+from os.path import dirname, isdir, abspath
+from queue import Empty
 from tkinter import ttk
 from tkinter import filedialog
+from ..audio_scanner import AudioScanner
 from .input_file_item import InputFileItem
 from .input_directory_item import InputDirectoryItem
 from logging import getLogger
-from os.path import abspath
-from .callback_audio_scanner import CallbackAudioScanner
 
 class InputFrame(ttk.Labelframe):
 
@@ -19,7 +20,7 @@ class InputFrame(ttk.Labelframe):
 		self.file_items:list[InputFileItem] = list()
 		self.paths:set[str] = set()
 		self.__scan_task_id:str|None = None
-		self.scanner = CallbackAudioScanner(on_subdirectory=self.__on_subdirectory, on_audio=self.__on_audio, on_skip=self.__on_skip)
+		self.scanner = AudioScanner()
 		logger.debug('setup input frame variables')
 
 		self.header_frame = ttk.Frame(self)
@@ -43,21 +44,6 @@ class InputFrame(ttk.Labelframe):
 
 		self.content_frame.columnconfigure(0, weight=1)
 		logger.debug('layed out input frame')
-
-	def __on_subdirectory(self, directory:PathLike, subdirectory:PathLike):
-		self.__increment_progress(directory)
-		self.add_directory(subdirectory, False)
-
-	def __on_audio(self, directory:PathLike, audio:PathLike):
-		self.__increment_progress(directory)
-		self.scanner.output_audio.task_done()
-		self.add_files(audio)
-
-	def __on_skip(self, directory:PathLike, path:PathLike|None):
-		if path is None:
-			self.remove_directory(directory)
-		else:
-			self.__increment_progress(directory)
 
 	def __increment_progress(self, directory:PathLike):
 		logger = getLogger(__name__)
@@ -112,12 +98,50 @@ class InputFrame(ttk.Labelframe):
 	def should_scan(self, path:PathLike):
 		return path is not None and abspath(path) not in self.paths
 
+	def __check_progress(self):
+		logger = getLogger(__name__)
+
+		try:
+			audio = self.scanner.output_audio.get(False)
+			logger.debug(f'got audio: {fspath(audio)}')
+			self.add_files(audio)
+			self.__increment_progress(dirname(audio))
+			self.scanner.output_audio.task_done()
+			return
+		except Empty:
+			pass
+
+		try:
+			subdirectory = self.scanner.output_subdirectories.get(False)
+			logger.debug(f'got subdirectory: {fspath(subdirectory)}')
+			self.add_directory(subdirectory)
+			self.__increment_progress(subdirectory)
+			self.scanner.output_subdirectories.task_done()
+			return
+		except Empty:
+			pass
+
+		try:
+			skipped = self.scanner.output_skipped.get(False)
+			logger.debug(f'got skipped: {fspath(skipped)}')
+			if isdir(skipped):
+				self.remove_directory(skipped)
+			else:
+				self.__increment_progress(dirname(skipped))
+			self.scanner.output_skipped.task_done()
+			return
+		except Empty:
+			pass
+
+		logger.debug('got nothing')
+
 	def __continue_scan(self):
 		logger = getLogger(__name__)
 		self.__scan_task_id = None
 		try:
 			self.scanner.continue_scan()
 			logger.debug('continued input directory scan')
+			self.__check_progress()
 		except StopIteration:
 			logger.warning('attempted to continue scan while input directory queue empty')
 			return
