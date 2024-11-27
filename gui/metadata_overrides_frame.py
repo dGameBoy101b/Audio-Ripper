@@ -25,7 +25,7 @@ class MetadataOverridesFrame(LabelFrame):
 		self.scrollbar.grid(column=3, row=1, sticky='NSE')
 		self.canvas['yscrollcommand'] = self.scrollbar.set
 
-		self.content = Frame(self)
+		self.content = Frame(self.canvas)
 		self.content.bind('<Configure>', lambda x: self.__config_scrollregion())
 		self.content.columnconfigure(0, weight=1)
 		self.content.columnconfigure(1, weight=2)
