@@ -1,9 +1,10 @@
 from argparse import ArgumentParser, Namespace
+from concurrent.futures import ThreadPoolExecutor
 import logging.config
 import sys
 from pathlib import PurePath
 import logging
-from .threaded_rip import rip_threaded
+from .rip import rip
 from .rip_args import RipArgs
 from os import path
 from .configure_logging import config_dict
@@ -60,7 +61,7 @@ def main():
 	logger.debug(f'args parsed: {args}')
 	rip_args = bundle_args(args)
 	logger.debug(f'args packed and sanitised: {rip_args}')
-	report = rip_threaded(rip_args)
+	report = rip(rip_args, ThreadPoolExecutor())
 	logger.debug(f'rip complete: {report}')
 	print(report)
 
