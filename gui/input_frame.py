@@ -20,7 +20,7 @@ class InputFrame(ttk.Labelframe):
 		self.file_items:list[InputFileItem] = list()
 		self.paths:set[str] = set()
 		self.__scan_task_id:str|None = None
-		self.scanner = AudioScanner()
+		self.scanner = AudioScanner(should_skip=lambda path: not self.should_scan(path))
 		logger.debug('setup input frame variables')
 
 		self.header_frame = ttk.Frame(self)
