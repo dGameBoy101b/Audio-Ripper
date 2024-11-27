@@ -7,7 +7,6 @@ from .job_executor import JobExecutor
 from .rip_args import RipArgs
 from .rip_report import RipReport
 
-
 def rip_jobs(args:RipArgs, executor:Executor)->RipReport:
 	logger = logging.getLogger(__name__)
 	conversions = dict()
@@ -17,7 +16,7 @@ def rip_jobs(args:RipArgs, executor:Executor)->RipReport:
 	with JobExecutor(executor) as job_executor:
 
 		logger.debug('creating jobs...')
-		with AudioScanner(args.input_dir) as scanner:
+		with AudioScanner([args.input_dir]) as scanner:
 			for audio_path in scanner:
 				output_path = args.output_path(audio_path)
 				conversions[audio_path] = output_path
