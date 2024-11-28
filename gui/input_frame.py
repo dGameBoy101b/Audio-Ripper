@@ -1,14 +1,14 @@
 from os import PathLike, fspath
 from os.path import dirname, isdir, abspath
 from queue import Empty
-from tkinter import ttk
-from tkinter import filedialog
+from tkinter.ttk import Labelframe, Button, Scrollbar, Frame
+from tkinter import Event, filedialog, Canvas
 from ..audio_scanner import AudioScanner
 from .input_file_item import InputFileItem
 from .input_directory_item import InputDirectoryItem
 from logging import getLogger
 
-class InputFrame(ttk.Labelframe):
+class InputFrame(Labelframe):
 
 	def __init__(self, master=None, **kwargs):
 		logger = getLogger(__name__)
@@ -23,12 +23,21 @@ class InputFrame(ttk.Labelframe):
 		self.scanner = AudioScanner(should_skip=self.should_skip)
 		logger.debug('setup input frame variables')
 
-		self.header_frame = ttk.Frame(self)
-		self.add_files_button = ttk.Button(self.header_frame, command=self.add_files, text='Add Files')
-		self.add_directories_button = ttk.Button(self.header_frame, command=self.add_directory, text='Scan Directory')
-		self.clear_files_button = ttk.Button(self.header_frame, command=self.remove_all_files, text='Clear Files')
-		self.clear_directories_button = ttk.Button(self.header_frame, command=self.remove_all_directories, text='Clear Directories')
-		self.content_frame = ttk.Frame(self)
+		self.header_frame = Frame(self)
+		self.add_files_button = Button(self.header_frame, command=self.add_files, text='Add Files')
+		self.add_directories_button = Button(self.header_frame, command=self.add_directory, text='Scan Directory')
+		self.clear_files_button = Button(self.header_frame, command=self.remove_all_files, text='Clear Files')
+		self.clear_directories_button = Button(self.header_frame, command=self.remove_all_directories, text='Clear Directories')
+
+		self.content_frame = Frame(self)
+		self.content_canvas = Canvas(self.content_frame)
+		self.content_scrollbar = Scrollbar(self.content_frame, orient='vertical', command=self.content_canvas.yview)
+		self.content_canvas.config(yscrollcommand=self.content_scrollbar.set)
+		self.content_canvas.bind('<Configure>', self.__resize_content)
+		self.content = Frame(self.content_canvas)
+		self.content.bind('<Configure>', self.__update_scrollregion)
+		self.content_id = self.content_canvas.create_window(0, 0, anchor='nw', window=self.content)
+
 		logger.debug('created input frame children')
 
 		self.header_frame.grid(row=0, column=0, sticky='EW')
@@ -42,8 +51,21 @@ class InputFrame(ttk.Labelframe):
 		self.clear_directories_button.grid(row=1, column=1, sticky='EW')
 		self.header_frame.columnconfigure([0,1], weight=1)
 
+		self.content_canvas.grid(row=0, column=0, sticky='NSEW')
+		self.content_canvas.columnconfigure(0, weight=1)
+		self.content_scrollbar.grid(row=0, column=1, sticky='NSE')
 		self.content_frame.columnconfigure(0, weight=1)
+		self.content_frame.rowconfigure(0, weight=1)
+
+		self.content.columnconfigure(0, weight=1)
+		self.content.rowconfigure(0, weight=1)
 		logger.debug('layed out input frame')
+
+	def __resize_content(self, event: Event):
+		self.content_canvas.itemconfig(self.content_id, width=event.width)
+
+	def __update_scrollregion(self, event:Event=None):
+		self.content_canvas.config(scrollregion=self.content_canvas.bbox(self.content_id))
 
 	def __increment_progress(self, directory:PathLike):
 		logger = getLogger(__name__)
@@ -70,7 +92,7 @@ class InputFrame(ttk.Labelframe):
 			if not self.scanner.is_audio(filename):
 				logger.warning(f'non audio input file skipped: {fspath(filename)}')
 				continue
-			item = InputFileItem(filename, self.content_frame, on_remove=self.remove_file)
+			item = InputFileItem(filename, self.content, on_remove=self.remove_file)
 			self.file_items.append(item)
 			self.paths.add(abspath(filename))
 			logger.info(f'audio input file listed: {fspath(filename)}')
@@ -195,7 +217,7 @@ class InputFrame(ttk.Labelframe):
 			return False
 		
 		try:
-			item = InputDirectoryItem(directory, self.content_frame, on_remove=self.remove_directory)
+			item = InputDirectoryItem(directory, self.content, on_remove=self.remove_directory)
 		except OSError as x:
 			logger.error(f'failed to add input directory: {fspath(directory)}', exc_info=x)
 			return False
@@ -239,6 +261,7 @@ class InputFrame(ttk.Labelframe):
 			item.grid(column=0, row=row, sticky='EW')
 			row += 1
 		logger.info(f'layed out {row} input items')
+		self.__update_scrollregion()
 		self.update()
 
 	def destroy(self):
