@@ -1,6 +1,5 @@
 import logging.config
 from tkinter import ttk
-from .async_tk import AsyncTk
 from .settings_frame import SettingsFrame
 from .input_frame import InputFrame
 from .output_frame import OutputFrame
@@ -38,8 +37,8 @@ def main():
 	logger = logging.getLogger(__name__)
 	logger.debug('configured logging')
 
-	tk = AsyncTk()
-	app = AudioRipperGUI(tk)
+	#tk = AsyncTk()
+	app = AudioRipperGUI()
 	app.configure_window()
 	logger.debug('configured audio ripper gui')
 
