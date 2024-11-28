@@ -117,8 +117,8 @@ class InputFrame(ttk.Labelframe):
 		except Empty:
 			return False
 		logger.debug(f'got subdirectory: {fspath(subdirectory)}')
+		self.__increment_progress(dirname(subdirectory))
 		self.add_directory(subdirectory)
-		self.__increment_progress(subdirectory)
 		self.scanner.output_subdirectories.task_done()
 		return True
 
