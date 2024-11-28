@@ -41,7 +41,7 @@ class AudioScanner():
 		return len(probe.audio) > 0
 
 	def try_output_skip(self, path:PathLike)->bool:
-		if self.should_skip(path):
+		if not self.should_skip(path):
 			return False
 		self.output_skip(path)
 		return True
@@ -62,7 +62,7 @@ class AudioScanner():
 		logger.debug(f'found directory: {fspath(directory)}')
 		self.output_subdirectories.put(directory)
 	
-	def try_output_audio(self, path:PathLike)->bool:
+	def try_output_audio_file(self, path:PathLike)->bool:
 		logger = getLogger(__name__)
 		try:
 			is_audio = self.is_audio(path)
@@ -71,10 +71,10 @@ class AudioScanner():
 			return False
 		if not is_audio:
 			return False
-		self.output_audio(path)
+		self.output_audio_file(path)
 		return True
 		
-	def output_audio(self, audio:PathLike):
+	def output_audio_file(self, audio:PathLike):
 		logger = getLogger(__name__)
 		logger.debug(f'found audio: {fspath(audio)}')
 		self.output_audio.put(audio)
@@ -107,8 +107,6 @@ class AudioScanner():
 		return True
 
 	def continue_scan(self):
-		logger = getLogger(__name__)
-
 		if self.__scanner is None:
 			self.open_next_directory()
 			return
@@ -124,7 +122,7 @@ class AudioScanner():
 			self.__current_path = None
 			return
 		
-		if self.try_output_audio(self.__current_path):
+		if self.try_output_audio_file(self.__current_path):
 			self.__current_path = None
 			return
 		
