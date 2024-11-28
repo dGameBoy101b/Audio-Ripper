@@ -187,24 +187,24 @@ class InputFrame(ttk.Labelframe):
 				return False
 		
 		if self.should_skip(directory):
-			logger.warning(f'duplicate input directory given: {abspath(directory)}')
+			logger.warning(f'duplicate input directory given: {fspath(directory)}')
 			return False
 			
 		if not self.scanner.is_directory(directory):
-			logger.warning(f'non-directory given as input directory: {abspath(directory)}')
+			logger.warning(f'non-directory given as input directory: {fspath(directory)}')
 			return False
 		
 		try:
 			item = InputDirectoryItem(directory, self.content_frame, on_remove=self.remove_directory)
 		except OSError as x:
-			logger.error(f'failed to add input directory: {abspath(directory)}', exc_info=x)
+			logger.error(f'failed to add input directory: {fspath(directory)}', exc_info=x)
 			return False
 
 		self.directory_items.append(item)
 		self.paths.add(abspath(directory))
 		if enqueue:
 			self.scanner.input_directories.put(directory)
-		logger.info(f'input directory added: {abspath(directory)}')
+		logger.info(f'input directory added: {fspath(directory)}')
 		self.schedule_scan()
 		self.__layout_items()
 		return True
@@ -213,7 +213,7 @@ class InputFrame(ttk.Labelframe):
 		logger = getLogger(__name__)
 		self.directory_items.remove(item)
 		self.paths.remove(abspath(item.path))
-		logger.info(f'input directory removed: {abspath(item.path)}')
+		logger.info(f'input directory removed: {fspath(item.path)}')
 		self.schedule_scan()
 		self.__layout_items()
 
