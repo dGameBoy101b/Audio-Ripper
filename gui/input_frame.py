@@ -20,7 +20,7 @@ class InputFrame(ttk.Labelframe):
 		self.file_items:list[InputFileItem] = list()
 		self.paths:set[str] = set()
 		self.__scan_task_id:str|None = None
-		self.scanner = AudioScanner(should_skip=lambda path: not self.should_scan(path))
+		self.scanner = AudioScanner(should_skip=self.should_skip)
 		logger.debug('setup input frame variables')
 
 		self.header_frame = ttk.Frame(self)
@@ -64,16 +64,16 @@ class InputFrame(ttk.Labelframe):
 				return
 			
 		for filename in filenames:
-			if not self.should_scan(filename):
-				logger.warning(f'duplicate input file skipped: {abspath(filename)}')
+			if self.should_skip(filename):
+				logger.warning(f'duplicate input file skipped: {fspath(filename)}')
 				continue
 			if not self.scanner.is_audio(filename):
-				logger.warning(f'non audio input file skipped: {abspath(filename)}')
+				logger.warning(f'non audio input file skipped: {fspath(filename)}')
 				continue
 			item = InputFileItem(filename, self.content_frame, on_remove=self.remove_file)
 			self.file_items.append(item)
 			self.paths.add(abspath(filename))
-			logger.info(f'audio input file listed: {abspath(filename)}')
+			logger.info(f'audio input file listed: {fspath(filename)}')
 
 		self.__layout_items()
 
@@ -95,8 +95,8 @@ class InputFrame(ttk.Labelframe):
 		logger.info(f'cleared all {len(paths)} files')
 		self.__layout_items()
 
-	def should_scan(self, path:PathLike):
-		return path is not None and abspath(path) not in self.paths
+	def should_skip(self, path:PathLike):
+		return path is None or abspath(path) in self.paths
 	
 	def __check_audio(self)->bool:
 		logger = getLogger(__name__)
@@ -186,7 +186,7 @@ class InputFrame(ttk.Labelframe):
 				logger.info('no input directory selected')
 				return False
 		
-		if not self.should_scan(directory):
+		if self.should_skip(directory):
 			logger.warning(f'duplicate input directory given: {abspath(directory)}')
 			return False
 			
