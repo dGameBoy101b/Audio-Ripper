@@ -23,10 +23,10 @@ class MetadataOverridesFrame(LabelFrame):
 		self.canvas.bind('<Configure>', self.__resize_content)
 		self.scrollbar = Scrollbar(self, orient='vertical', command=self.canvas.yview)
 		self.scrollbar.grid(column=3, row=1, sticky='NSE')
-		self.canvas['yscrollcommand'] = self.scrollbar.set
+		self.canvas.config(yscrollcommand=self.scrollbar.set)
 
 		self.content = Frame(self.canvas)
-		self.content.bind('<Configure>', lambda x: self.__config_scrollregion())
+		self.content.bind('<Configure>', self.__config_scrollregion)
 		self.content.columnconfigure(0, weight=1)
 		self.content.columnconfigure(1, weight=2)
 		self.content_id = self.canvas.create_window(0, 0, window=self.content, anchor='nw', width=self.canvas['width'])
@@ -39,7 +39,7 @@ class MetadataOverridesFrame(LabelFrame):
 		self.canvas.itemconfig(self.content_id, width=event.width)
 		self.__config_scrollregion()
 
-	def __config_scrollregion(self):
+	def __config_scrollregion(self, event:Event=None):
 		self.canvas.configure(scrollregion=self.canvas.bbox(self.content_id))
 
 	def __layout_items(self):
