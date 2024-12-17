@@ -23,6 +23,7 @@ class InputFrame(Labelframe):
 		self.paths:set[str] = set()
 		self.__scan_task_id:str|None = None
 		self.scanner = AudioScanner(should_skip=self.should_skip)
+		self.__destroy_bindings = dict()
 		logger.debug('setup input frame variables')
 
 		self.header_frame = Frame(self)
@@ -72,7 +73,8 @@ class InputFrame(Labelframe):
 				logger.warning(f'non audio input file skipped: {fspath(filename)}')
 				continue
 			item = InputFileItem(filename, self.content_box.content)
-			item.bind('<Destroy>', lambda event: self.remove_file(event.widget))
+			binding = item.bind('<Destroy>', lambda event: self.remove_file(event.widget))
+			self.__destroy_bindings[item] = binding
 			self.file_items.append(item)
 			self.paths.add(abspath(filename))
 			logger.info(f'audio input file listed: {fspath(filename)}')
@@ -84,18 +86,22 @@ class InputFrame(Labelframe):
 		self.file_items.remove(item)
 		path = item.get()
 		self.paths.remove(abspath(path))
+		item.unbind('<Destroy>', self.__destroy_bindings[item])
+		del self.__destroy_bindings[item]
 		logger.info(f'input file removed: {abspath(path)}')
 		self.__layout_items()
 
 	def remove_all_files(self):
 		logger = getLogger(__name__)
-		paths = set()
-		for item in self.file_items:
-			item.destroy()
-			paths.add(abspath(item.get()))
+		to_destroy = list(self.file_items)
+		paths = set([abspath(item.get()) for item in self.file_items])
 		self.file_items.clear()
 		self.paths -= paths
-		logger.info(f'cleared all {len(paths)} files')
+		for item in to_destroy:
+			item.unbind('<Destroy>', self.__destroy_bindings[item])
+			del self.__destroy_bindings[item]
+			item.destroy()
+		logger.info(f'cleared all {len(to_destroy)} files')
 		self.__layout_items()
 
 	def should_skip(self, path:PathLike):
@@ -203,7 +209,8 @@ class InputFrame(Labelframe):
 			logger.error(f'failed to add input directory: {fspath(directory)}', exc_info=x)
 			return False
 
-		item.bind('<Destroy>', lambda event: self.remove_directory(event.widget))
+		binding = item.bind('<Destroy>', lambda event: self.remove_directory(event.widget))
+		self.__destroy_bindings[item] = binding
 		self.directory_items.append(item)
 		self.paths.add(abspath(directory))
 		if enqueue:
@@ -218,20 +225,24 @@ class InputFrame(Labelframe):
 		self.directory_items.remove(item)
 		path = item.get()
 		self.paths.remove(abspath(path))
+		item.unbind('<Destroy>', self.__destroy_bindings[item])
+		del self.__destroy_bindings[item]
 		logger.info(f'input directory removed: {fspath(path)}')
 		self.schedule_scan()
 		self.__layout_items()
 
 	def remove_all_directories(self):
 		logger = getLogger(__name__)
-		paths = set()
+		to_destroy = list(self.directory_items)
+		paths = set([abspath(item.get()) for item in self.directory_items])
 		self.cancel_scan()
-		for item in self.directory_items:
-			item.destroy()
-			paths.add(abspath(item.get()))
 		self.directory_items.clear()
 		self.paths -= paths
-		logger.info(f'cleared all {len(paths)} directories')
+		for item in to_destroy:
+			item.unbind('<Destroy>', self.__destroy_bindings[item])
+			del self.__destroy_bindings[item]
+			item.destroy()
+		logger.info(f'cleared all {len(to_destroy)} directories')
 		self.__layout_items()
 		
 	def __layout_items(self):
@@ -249,4 +260,10 @@ class InputFrame(Labelframe):
 
 	def destroy(self):
 		self.cancel_scan()
+		for item in self.file_items + self.directory_items:
+			item.unbind('<Destroy>', self.__destroy_bindings[item])
+		self.__destroy_bindings.clear()
+		self.paths.clear()
+		self.file_items.clear()
+		self.directory_items.clear()
 		return super().destroy()
