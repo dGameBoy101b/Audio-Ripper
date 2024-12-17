@@ -4,14 +4,13 @@ import tkinter
 from logging import getLogger
 from os.path import abspath
 
-class InputFileItem(ttk.Frame):
+class InputFileItem(tkinter.Frame):
 
 	def __init__(self, path: PathLike, master=None, *, on_remove=None, **kwargs):
 		logger = getLogger(__name__)
 		super().__init__(master, **kwargs)
 		logger.debug('created input file item')
 
-		self.path = path
 		self.on_remove = on_remove
 		logger.debug('setup input file item variables')
 
@@ -32,4 +31,4 @@ class InputFileItem(ttk.Frame):
 		logger.debug(f'removed input path: {self.path}')
 
 	def get(self)->PathLike:
-		return self.path
+		return self.variable.get()
