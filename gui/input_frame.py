@@ -267,3 +267,6 @@ class InputFrame(Labelframe):
 		self.file_items.clear()
 		self.directory_items.clear()
 		return super().destroy()
+
+	def get(self)->list[PathLike]:
+		return [item.get() for item in self.file_items]
