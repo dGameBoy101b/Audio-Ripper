@@ -49,7 +49,7 @@ class InputFrame(Labelframe):
 	def __increment_progress(self, directory:PathLike):
 		logger = getLogger(__name__)
 		for item in self.directory_items:
-			if abspath(item.path) == abspath(directory):
+			if abspath(item.get()) == abspath(directory):
 				item.increment_progress()
 				return
 		logger.warning(f'attempted to increment progress of missing directory: {directory}')
@@ -71,7 +71,8 @@ class InputFrame(Labelframe):
 			if not self.scanner.is_audio(filename):
 				logger.warning(f'non audio input file skipped: {fspath(filename)}')
 				continue
-			item = InputFileItem(filename, self.content_box.content, on_remove=self.remove_file)
+			item = InputFileItem(filename, self.content_box.content)
+			item.bind('<Destroy>', lambda event: self.remove_file(event.widget))
 			self.file_items.append(item)
 			self.paths.add(abspath(filename))
 			logger.info(f'audio input file listed: {fspath(filename)}')
@@ -81,8 +82,9 @@ class InputFrame(Labelframe):
 	def remove_file(self, item:InputFileItem):
 		logger = getLogger(__name__)
 		self.file_items.remove(item)
-		self.paths.remove(abspath(item.path))
-		logger.info(f'input file removed: {abspath(item.path)}')
+		path = item.get()
+		self.paths.remove(abspath(path))
+		logger.info(f'input file removed: {abspath(path)}')
 		self.__layout_items()
 
 	def remove_all_files(self):
@@ -90,7 +92,7 @@ class InputFrame(Labelframe):
 		paths = set()
 		for item in self.file_items:
 			item.destroy()
-			paths.add(abspath(item.path))
+			paths.add(abspath(item.get()))
 		self.file_items.clear()
 		self.paths -= paths
 		logger.info(f'cleared all {len(paths)} files')
@@ -196,11 +198,12 @@ class InputFrame(Labelframe):
 			return False
 		
 		try:
-			item = InputDirectoryItem(directory, self.content_box.content, on_remove=self.remove_directory)
+			item = InputDirectoryItem(directory, self.content_box.content)
 		except OSError as x:
 			logger.error(f'failed to add input directory: {fspath(directory)}', exc_info=x)
 			return False
 
+		item.bind('<Destroy>', lambda event: self.remove_directory(event.widget))
 		self.directory_items.append(item)
 		self.paths.add(abspath(directory))
 		if enqueue:
@@ -213,8 +216,9 @@ class InputFrame(Labelframe):
 	def remove_directory(self, item:InputDirectoryItem):
 		logger = getLogger(__name__)
 		self.directory_items.remove(item)
-		self.paths.remove(abspath(item.path))
-		logger.info(f'input directory removed: {fspath(item.path)}')
+		path = item.get()
+		self.paths.remove(abspath(path))
+		logger.info(f'input directory removed: {fspath(path)}')
 		self.schedule_scan()
 		self.__layout_items()
 
@@ -224,7 +228,7 @@ class InputFrame(Labelframe):
 		self.cancel_scan()
 		for item in self.directory_items:
 			item.destroy()
-			paths.add(abspath(item.path))
+			paths.add(abspath(item.get()))
 		self.directory_items.clear()
 		self.paths -= paths
 		logger.info(f'cleared all {len(paths)} directories')
