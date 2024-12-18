@@ -2,7 +2,7 @@ from os import PathLike, fspath
 from os.path import dirname, isdir, abspath
 from queue import Empty
 from tkinter.ttk import Labelframe, Button, Frame
-from tkinter import filedialog
+from tkinter import Event, filedialog
 
 from .vertical_box import VerticalBox
 from ..audio_scanner import AudioScanner
@@ -55,6 +55,9 @@ class InputFrame(Labelframe):
 				return
 		logger.warning(f'attempted to increment progress of missing directory: {directory}')
 
+	def __file_item_destroyed(self, event:Event):
+		self.remove_file(event.widget)
+
 	def add_files(self, *filenames):
 		logger = getLogger(__name__)
 
@@ -73,7 +76,7 @@ class InputFrame(Labelframe):
 				logger.warning(f'non audio input file skipped: {fspath(filename)}')
 				continue
 			item = InputFileItem(filename, self.content_box.content)
-			binding = item.bind('<Destroy>', lambda event: self.remove_file(event.widget))
+			binding = item.bind('<Destroy>', self.__file_item_destroyed)
 			self.__destroy_bindings[item] = binding
 			self.file_items.append(item)
 			self.paths.add(abspath(filename))
@@ -185,6 +188,9 @@ class InputFrame(Labelframe):
 			self.after_cancel(self.__scan_task_id)
 			self.__scan_task_id = None
 
+	def __directory_item_destroyed(self, event: Event):
+		self.remove_directory(event.widget)
+
 	def add_directory(self, directory:PathLike=None, enqueue:bool=True)->bool:
 		logger = getLogger(__name__)
 
@@ -209,7 +215,7 @@ class InputFrame(Labelframe):
 			logger.error(f'failed to add input directory: {fspath(directory)}', exc_info=x)
 			return False
 
-		binding = item.bind('<Destroy>', lambda event: self.remove_directory(event.widget))
+		binding = item.bind('<Destroy>', self.__directory_item_destroyed)
 		self.__destroy_bindings[item] = binding
 		self.directory_items.append(item)
 		self.paths.add(abspath(directory))
