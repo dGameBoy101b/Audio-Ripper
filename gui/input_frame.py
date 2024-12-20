@@ -84,8 +84,7 @@ class InputFrame(Labelframe):
 			self.file_items.append(item)
 			self.paths.add(abspath(filename))
 			logger.info(f'audio input file listed: {fspath(filename)}')
-
-		self.__layout_items()
+			self.__layout_items()
 
 	def remove_file(self, item:InputFileItem):
 		logger = getLogger(__name__)
@@ -166,11 +165,14 @@ class InputFrame(Labelframe):
 		self.__scan_task_id = None
 		try:
 			self.scanner.continue_scan()
-			logger.debug('continued input directory scan')
-			self.__check_progress()
 		except StopIteration:
 			logger.warning('attempted to continue scan while input directory queue empty')
 			return
+		logger.debug('continued input directory scan')
+		self.update()
+		self.__check_progress()
+		logger.debug('checked scan progress')
+		self.update()
 		self.schedule_scan()
 
 	def schedule_scan(self, milliseconds:int=0)->bool:
