@@ -1,6 +1,8 @@
 from logging import getLogger
 from tkinter import Event, LabelFrame
 from tkinter.ttk import Button, Label
+
+from .widget_exploration import explore_leaves
 from .vertical_box import VerticalBox
 from .metadata_override_item import MetadataOverrideItem
 
@@ -50,10 +52,8 @@ class MetadataOverridesFrame(LabelFrame):
 		self.__items.append(item)
 		binding = item.bind('<Destroy>', self.__item_destroyed)
 		self.__destroy_bindings[item] = binding
-		self.content_box.bind_scroll_forwarding(item)
-		self.content_box.bind_scroll_forwarding(item.key_entry)
-		self.content_box.bind_scroll_forwarding(item.value_entry)
-		self.content_box.bind_scroll_forwarding(item.remove_button)
+		for widget in explore_leaves(item):
+			self.content_box.bind_scroll_forwarding(widget)
 		self.__layout_items()
 
 	def remove(self, item:MetadataOverrideItem):
