@@ -2,7 +2,7 @@ from logging import getLogger
 from tkinter import Event, LabelFrame
 from tkinter.ttk import Button, Label
 
-from .widget_exploration import explore_leaves
+from .widget_exploration import explore_descendants
 from .vertical_box import VerticalBox
 from .metadata_override_item import MetadataOverrideItem
 
@@ -52,7 +52,7 @@ class MetadataOverridesFrame(LabelFrame):
 		self.__items.append(item)
 		binding = item.bind('<Destroy>', self.__item_destroyed)
 		self.__destroy_bindings[item] = binding
-		for widget in explore_leaves(item):
+		for widget in explore_descendants(item):
 			self.content_box.bind_scroll_forwarding(widget)
 		self.__layout_items()
 

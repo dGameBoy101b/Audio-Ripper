@@ -4,6 +4,7 @@ from queue import Empty
 from tkinter.ttk import Labelframe, Button, Frame
 from tkinter import Event, filedialog
 
+from .widget_exploration import explore_descendants
 from .vertical_box import VerticalBox
 from ..audio_scanner import AudioScanner
 from .input_file_item import InputFileItem
@@ -78,6 +79,8 @@ class InputFrame(Labelframe):
 			item = InputFileItem(filename, self.content_box.content)
 			binding = item.bind('<Destroy>', self.__file_item_destroyed)
 			self.__destroy_bindings[item] = binding
+			for widget in explore_descendants(item):
+				self.content_box.bind_scroll_forwarding(widget)
 			self.file_items.append(item)
 			self.paths.add(abspath(filename))
 			logger.info(f'audio input file listed: {fspath(filename)}')
@@ -217,6 +220,8 @@ class InputFrame(Labelframe):
 
 		binding = item.bind('<Destroy>', self.__directory_item_destroyed)
 		self.__destroy_bindings[item] = binding
+		for widget in explore_descendants(item):
+			self.content_box.bind_scroll_forwarding(widget)
 		self.directory_items.append(item)
 		self.paths.add(abspath(directory))
 		if enqueue:
