@@ -1,20 +1,24 @@
-from tkinter import ttk
-from typing import Callable
+from tkinter import Misc, StringVar
+from tkinter.ttk import Button, Entry, Frame
 
-class MetadataOverrideItem:
+class MetadataOverrideItem(Frame):
 
-	def __init__(self, master:ttk.Widget=None, on_remove:Callable[['MetadataOverrideItem'],None]=None):
-		self.on_remove = on_remove
-		self.key_entry = ttk.Entry(master, width=10)
-		self.value_entry = ttk.Entry(master, width=20)
-		self.remove_button = ttk.Button(master, command=self.__remove, text='x', width=2)
+	def __init__(self, master:Misc=None, key:str='', value:str='', **kwargs):
+		super().__init__(master, **kwargs)
 
-	def __remove(self):
-		if self.on_remove:
-			self.on_remove(self)
-		self.key_entry.destroy()
-		self.value_entry.destroy()
-		self.remove_button.destroy()
+		self.key_variable = StringVar(self, key)
+		self.value_variable = StringVar(self, value)
 
-	def get(self)->str:
-		return f'{self.key_entry.get()}={self.value_entry.get()}'
+		self.key_entry = Entry(self, textvariable=self.key_variable, width=10)
+		self.value_entry = Entry(self, textvariable=self.value_variable, width=20)
+		self.remove_button = Button(self, command=self.destroy, text='x', width=2)
+
+		self.key_entry.grid(column=0, row=0, sticky='EW')
+		self.value_entry.grid(column=1, row=0, sticky='EW')
+		self.remove_button.grid(column=2, row=0)
+
+		self.columnconfigure(0, weight=1)
+		self.columnconfigure(1, weight=2)
+
+	def get(self)->tuple[str,str]:
+		return (self.key_variable.get(), self.value_variable.get())
