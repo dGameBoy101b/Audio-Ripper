@@ -55,14 +55,18 @@ class VerticalBox(Frame):
 		self.scrollbar.event_generate(f'<Button-{event.num}', delta=event.delta)
 
 	def bind_scroll_forwarding(self, widget: Misc):
+		logger = getLogger(__name__)
 		tags = list(widget.bindtags())
 		tags.append(str(self))
 		widget.bindtags(tags)
+		logger.debug(f'scroll forwarding for {self} bound to {widget}')
 	
 	def unbind_scroll_forwarding(self, widget: Misc):
+		logger = getLogger(__name__)
 		tags = list(widget.bindtags())
 		tags.remove(str(self))
-		widget.bindtags(tags)	
+		widget.bindtags(tags)
+		logger.debug(f'scroll forwarding for {self} unbound from {widget}')
 
 	def __config_grid(self):
 		logger = getLogger(__name__)
