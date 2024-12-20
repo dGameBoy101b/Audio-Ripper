@@ -64,7 +64,11 @@ class VerticalBox(Frame):
 	def unbind_scroll_forwarding(self, widget: Misc):
 		logger = getLogger(__name__)
 		tags = list(widget.bindtags())
-		tags.remove(str(self))
+		tag = str(self)
+		for index in range(-1, -1-len(tags), -1):
+			if tags[index] == tag:
+				tags.pop(index)
+				break
 		widget.bindtags(tags)
 		logger.debug(f'scroll forwarding for {self} unbound from {widget}')
 
