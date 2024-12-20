@@ -12,8 +12,8 @@ class MetadataOverridesFrame(LabelFrame):
 		self.__destroy_bindings = dict()
 
 		self.content_box = VerticalBox(self)
-		self.key_label = Label(self.content_box, text='Key', justify='center')
-		self.value_label = Label(self.content_box, text='Value', justify='center')
+		self.key_label = Label(self.content_box, text='Key', anchor='center')
+		self.value_label = Label(self.content_box, text='Value', anchor='center')
 		self.add_button = Button(self.content_box, text='+', command=self.add, width=2)
 
 		self.key_label.grid(row=0, column=0, sticky='EW')
