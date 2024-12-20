@@ -1,3 +1,4 @@
+from logging import getLogger
 from tkinter import Event, LabelFrame
 from tkinter.ttk import Button, Label
 from .vertical_box import VerticalBox
@@ -34,11 +35,11 @@ class MetadataOverridesFrame(LabelFrame):
 		self.rowconfigure(0, weight=1)
 
 	def __layout_items(self):
+		logger = getLogger(__name__)
 		for row in range(len(self.__items)):
 			item = self.__items[row]
-			print(f'layed out item in row {row}: {item}')
 			item.grid(column=0, row=row, sticky='EW', columnspan=3)
-		print(f'layed out {len(self.__items)} metadata overrides')
+		logger.info(f'layed out {len(self.__items)} metadata overrides')
 		self.update()
 
 	def __item_destroyed(self, event: Event):
@@ -46,9 +47,13 @@ class MetadataOverridesFrame(LabelFrame):
 
 	def add(self, key:str='', value:str=''):
 		item = MetadataOverrideItem(self.content_box.content, key, value)
+		self.__items.append(item)
 		binding = item.bind('<Destroy>', self.__item_destroyed)
 		self.__destroy_bindings[item] = binding
-		self.__items.append(item)
+		self.content_box.bind_scroll_forwarding(item)
+		self.content_box.bind_scroll_forwarding(item.key_entry)
+		self.content_box.bind_scroll_forwarding(item.value_entry)
+		self.content_box.bind_scroll_forwarding(item.remove_button)
 		self.__layout_items()
 
 	def remove(self, item:MetadataOverrideItem):
