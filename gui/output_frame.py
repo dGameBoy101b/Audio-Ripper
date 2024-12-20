@@ -9,17 +9,26 @@ class OutputFrame(Labelframe):
 
 	def __init__(self, master=None):
 		super().__init__(master, text='Output')
+		self.__create_widgets()
+		self.__config_grid()
+
+	def __create_widgets(self):
+		logger = getLogger(__name__)
+		logger.debug(f'creating widgets... {self}')
 		self.directory_variable = StringVar(self)
-		
 		self.directory_label = Label(self, text='Output Directory')
 		self.directory_entry = Entry(self, justify='left', textvariable=self.directory_variable)
 		self.directory_button = Button(self, text='Browse...', command=self.set_directory)
+		logger.debug(f'widgets created: {self}')
 
+	def __config_grid(self):
+		logger = getLogger(__name__)
+		logger.debug(f'configuring grid... {self}')
 		self.directory_label.grid(row=0, column=0)
 		self.directory_entry.grid(row=0, column=1, sticky='EW')
 		self.directory_button.grid(row=0, column=2)
-
 		self.columnconfigure(1, weight=1)
+		logger.debug(f'grid configured: {self}')
 
 	def set_directory(self, directory:PathLike=None)->bool:
 		logger = getLogger(__name__)
