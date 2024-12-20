@@ -261,7 +261,6 @@ class InputFrame(Labelframe):
 			item.grid(column=0, row=row, sticky='EW')
 			row += 1
 		logger.info(f'layed out {row} input items')
-		self.content_box.update_scrollregion()
 		self.update()
 
 	def destroy(self):

@@ -10,8 +10,8 @@ class VerticalBox(Frame):
 		self.canvas.config(yscrollcommand=self.scrollbar.set)
 		self.canvas.bind('<Configure>', self.__resize_content)
 		self.content = Frame(self.canvas)
-		self.bind('<Configure>', self.update_scrollregion)
 		self.content_id = self.canvas.create_window(0, 0, anchor='nw', window=self.content)
+		self.content.bind('<Configure>', self.__update_scrollregion)
 		
 		self.canvas.columnconfigure(0, weight=1)
 		self.canvas.grid(row=0, column=0, sticky='NSEW')
@@ -22,5 +22,5 @@ class VerticalBox(Frame):
 	def __resize_content(self, event: Event):
 		self.canvas.itemconfig(self.content_id, width=event.width)
 
-	def update_scrollregion(self, event:Event=None):
+	def __update_scrollregion(self, event:Event=None):
 		self.canvas.config(scrollregion=self.canvas.bbox(self.content_id))

@@ -39,7 +39,6 @@ class MetadataOverridesFrame(LabelFrame):
 			print(f'layed out item in row {row}: {item}')
 			item.grid(column=0, row=row, sticky='EW', columnspan=3)
 		print(f'layed out {len(self.__items)} metadata overrides')
-		self.content_box.update_scrollregion()
 		self.update()
 
 	def __item_destroyed(self, event: Event):
