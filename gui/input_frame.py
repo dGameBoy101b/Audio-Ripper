@@ -158,7 +158,7 @@ class InputFrame(Labelframe):
 			return
 		if self.__check_skipped():
 			return
-		logger.debug('got nothing')
+		logger.debug('no progress found')
 
 	def __continue_scan(self):
 		logger = getLogger(__name__)
