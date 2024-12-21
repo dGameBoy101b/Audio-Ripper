@@ -133,7 +133,7 @@ class DirectoryScansFrame(LabelFrame):
 		except Empty:
 			return False
 		logger.debug(f'got audio: {fspath(audio)}')
-		self.file_list.add_files(audio)
+		self.file_list.add_file(audio)
 		self.__increment_progress(dirname(audio))
 		self.scanner.output_audio.task_done()
 		return True
