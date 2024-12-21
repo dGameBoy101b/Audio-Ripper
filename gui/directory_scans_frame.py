@@ -14,7 +14,7 @@ from .recurring_tkinter_task import ReccuringTkinterTask
 from .widget_exploration import explore_descendants
 from .vertical_box import VerticalBox
 
-class InputScansFrame(LabelFrame):
+class DirectoryScansFrame(LabelFrame):
 	def __init__(self, file_list:InputFilesFrame, scanner: AudioScanner = None, master:Misc=None, **kwargs):
 		super().__init__(master, **kwargs, text='Directory Scans')
 		self.file_list = file_list

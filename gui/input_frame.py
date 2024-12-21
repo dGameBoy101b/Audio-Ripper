@@ -5,7 +5,7 @@ from logging import getLogger
 from ..audio_scanner import AudioScanner
 
 from .input_files_frame import InputFilesFrame
-from .input_scans_frame import InputScansFrame
+from .directory_scans_frame import DirectoryScansFrame
 
 class InputFrame(Labelframe):
 
@@ -20,7 +20,7 @@ class InputFrame(Labelframe):
 		self.panes = PanedWindow(self, orient='horizontal')
 		scanner = AudioScanner()
 		self.files_frame = InputFilesFrame(scanner.is_audio, self.panes)
-		self.scans_frame = InputScansFrame(self.files_frame, scanner, self.panes)
+		self.scans_frame = DirectoryScansFrame(self.files_frame, scanner, self.panes)
 		logger.debug(f'widgets created: {self}')
 
 	def __configure_grid(self):
