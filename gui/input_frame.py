@@ -21,7 +21,7 @@ class InputFrame(Labelframe):
 		self.directory_items:list[InputDirectoryItem] = list()
 		self.file_items:list[InputFileItem] = list()
 		self.paths:set[str] = set()
-		self.scan_task = ReccuringTkinterTask(self, 0, self.__continue_scan)
+		self.scan_task = ReccuringTkinterTask(self, 'idle', self.__continue_scan)
 		self.scanner = AudioScanner(should_skip=self.should_skip)
 		self.__destroy_bindings = dict()
 
