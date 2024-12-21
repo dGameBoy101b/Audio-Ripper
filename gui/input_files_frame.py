@@ -84,9 +84,8 @@ class InputFilesFrame(LabelFrame):
 
 	def remove_file(self, item:InputFileItem):
 		logger = getLogger(__name__)
-		self.file_items.remove(item)
 		path = item.get()
-		self.paths.remove(abspath(path))
+		self.files.remove(abspath(path))
 		item.unbind('<Destroy>', self.__destroy_bindings[item])
 		del self.__destroy_bindings[item]
 		logger.info(f'input file removed: {abspath(path)}')
