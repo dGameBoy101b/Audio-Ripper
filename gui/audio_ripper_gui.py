@@ -2,7 +2,7 @@ import logging.config
 from tkinter import ttk
 from .settings_frame import SettingsFrame
 from .input_frame import InputFrame
-from .output_frame import OutputFrame
+from .output_files_frame import OutputFilesFrame
 import logging
 from .configure_logging import config_dict
 
@@ -15,7 +15,7 @@ class AudioRipperGUI(ttk.Panedwindow):
 
 		self.settingsFrame = SettingsFrame(self)
 		self.inputFrame = InputFrame(self)
-		self.outputFrame = OutputFrame(self)
+		self.outputFrame = OutputFilesFrame(self)
 		logger.debug('created audio ripper gui children')
 
 		self.grid(sticky='NSEW')
