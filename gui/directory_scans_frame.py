@@ -30,6 +30,7 @@ class DirectoryScansFrame(LabelFrame):
 		logger = getLogger(__name__)
 		logger.debug(f'creating widgets... {self}')
 		self.scan_directory_button = Button(self, command=self.add_directory, text='Scan Directory')
+		self.clear_directories_button = Button(self, command=self.remove_all_directories, text='Clear Directories')
 		self.content_box = VerticalBox(self)
 		logger.debug(f'widgets created: {self}')
 
@@ -37,9 +38,10 @@ class DirectoryScansFrame(LabelFrame):
 		logger = getLogger(__name__)
 		logger.debug(f'configuring grid... {self}')
 		self.scan_directory_button.grid(row=0, column=0, sticky='EW')
-		self.content_box.grid(row=1, column=0, sticky='NSEW')
+		self.clear_directories_button.grid(row=0, column=1, sticky='EW')
+		self.content_box.grid(row=1, column=0, columnspan=2, sticky='NSEW')
 		self.content_box.content.columnconfigure(0, weight=1)
-		self.columnconfigure(0, weight=1)
+		self.columnconfigure([0,1], weight=1)
 		self.rowconfigure(1, weight=1)
 		logger.debug(f'grid configured: {self}')
 		
