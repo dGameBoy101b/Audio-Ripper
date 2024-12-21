@@ -1,40 +1,54 @@
-import logging.config
-from tkinter import ttk
+from logging import getLogger
+from logging.config import dictConfig
+from tkinter.ttk import PanedWindow
+
+from ..audio_scanner import AudioScanner
+from .directory_scans_frame import DirectoryScansFrame
+
+from .input_files_frame import InputFilesFrame
 from .settings_frame import SettingsFrame
-from .input_frame import InputFrame
 from .output_files_frame import OutputFilesFrame
-import logging
 from .configure_logging import config_dict
 
-class AudioRipperGUI(ttk.Panedwindow):
+class AudioRipperGUI(PanedWindow):
 
 	def __init__(self, master=None):
-		logger = logging.getLogger(__name__)
 		super().__init__(master, orient='horizontal')
-		logger.debug('created audio ripper gui')
+		self.__create_widgets()
+		self.__configure_grid()
 
-		self.settingsFrame = SettingsFrame(self)
-		self.inputFrame = InputFrame(self)
-		self.outputFrame = OutputFilesFrame(self)
-		logger.debug('created audio ripper gui children')
+	def __create_widgets(self):
+		logger = getLogger(__name__)
+		logger.debug(f'creating widgets... {self}')
+		self.settings_frame = SettingsFrame(self)
+		scanner = AudioScanner()
+		self.files_frame = InputFilesFrame(scanner.is_audio, self)
+		self.scans_frame = DirectoryScansFrame(self.files_frame, scanner, self)
+		self.output_frame = OutputFilesFrame(self)
+		logger.debug(f'created widgets: {self}')
 
-		self.grid(sticky='NSEW')
-		self.add(self.settingsFrame, weight=1)
-		self.add(self.inputFrame, weight=1)
-		self.add(self.outputFrame, weight=1)
-		logger.debug('layed out audio ripper gui')
+	def __configure_grid(self):
+		logger = getLogger(__name__)
+		logger.debug(f'configuring grid... {self}')
+		self.add(self.settings_frame, weight=1)
+		self.add(self.scans_frame, weight=1)
+		self.add(self.files_frame, weight=1)
+		self.add(self.output_frame, weight=1)
+		logger.debug(f'grid configured {self}')
 
 	def configure_window(self):
-		logger = logging.getLogger(__name__)
+		logger = getLogger(__name__)
+		logger.debug('configuring window...')
 		window = self.winfo_toplevel()
 		window.title('Audio Ripper')
 		window.columnconfigure(0, weight=1)
 		window.rowconfigure(0, weight=1)
-		logger.debug(f'configured audio ripper gui window: {type(window)}')
+		self.grid(sticky='NSEW')
+		logger.debug(f'window configured: {type(window)}')
 
 def main():
-	logging.config.dictConfig(config_dict)
-	logger = logging.getLogger(__name__)
+	dictConfig(config_dict)
+	logger = getLogger(__name__)
 	logger.debug('configured logging')
 
 	#tk = AsyncTk()
