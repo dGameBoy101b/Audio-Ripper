@@ -22,7 +22,7 @@ class InputFilesFrame(LabelFrame):
 	def __create_widgets(self):
 		logger = getLogger(__name__)
 		logger.debug(f'creating widgets... {self}')
-		self.add_files_button = Button(self, command=self.add_files, text='Add Files')
+		self.add_files_button = Button(self, command=self.ask_files, text='Add Files')
 		self.clear_files_button = Button(self, command=self.remove_all_files, text='Clear Files')
 		self.content_box = VerticalBox(self)
 		logger.debug(f'widgets created: {self}')
@@ -50,31 +50,37 @@ class InputFilesFrame(LabelFrame):
 		logger.info(f'layed out {row} input file items')
 		self.update()
 
-	def add_files(self, *filenames):
+	def ask_files(self)->int:
 		logger = getLogger(__name__)
-
-		if len(filenames) < 1:
-			logger.info('opening input files dialog')
-			filenames = askopenfilenames(title='Input Audio Files')
-			if filenames == '':
-				logger.info('no input files selected')
-				return
-			
+		logger.info('opening input files dialog')
+		filenames = askopenfilenames(title='Input Audio Files')
+		if filenames == '':
+			logger.info('no input files selected')
+			return 0
+		count = 0
 		for filename in filenames:
-			if abspath(filename) in self.files:
-				logger.warning(f'duplicate input file skipped: {fspath(filename)}')
-				continue
-			if not self.is_audio(filename):
-				logger.warning(f'non audio input file skipped: {fspath(filename)}')
-				continue
-			item = InputFileItem(filename, self.content_box.content)
-			binding = item.bind('<Destroy>', self.__file_item_destroyed)
-			self.__destroy_bindings[item] = binding
-			for widget in explore_descendants(item):
-				self.content_box.bind_scroll_forwarding(widget)
-			self.files.append(abspath(filename))
-			logger.info(f'audio input file listed: {fspath(filename)}')
-			self.__layout_items()
+			try:
+				self.add_file(filename)
+				count += 1
+			except BaseException as x:
+				logger.warning(f'invalid input file skipped: {x}', exc_info=x)
+		logger.info(f'added {count}/{len(filenames)} selected input files')
+		return count
+
+	def add_file(self, filename:PathLike):
+		logger = getLogger(__name__)
+		if abspath(filename) in self.files:
+			raise ValueError(f'duplicate input file: {fspath(filename)}')
+		if not self.is_audio(filename):
+			raise ValueError(f'non-audio input file: {fspath(filename)}')
+		item = InputFileItem(filename, self.content_box.content)
+		binding = item.bind('<Destroy>', self.__file_item_destroyed)
+		self.__destroy_bindings[item] = binding
+		for widget in explore_descendants(item):
+			self.content_box.bind_scroll_forwarding(widget)
+		self.files.append(abspath(filename))
+		logger.info(f'audio input file added: {fspath(filename)}')
+		self.__layout_items()
 
 	def remove_file(self, item:InputFileItem):
 		logger = getLogger(__name__)
