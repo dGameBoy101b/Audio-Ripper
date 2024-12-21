@@ -5,9 +5,11 @@ from typing import Callable, Generator, Self
 from os.path import isdir, isfile
 from ffprobe import FFProbe
 
+from .mutable_queue import MutableQueue
+
 class AudioScanner():
 
-	def __init__(self, input_directories:Queue[PathLike]=None, should_skip:Callable[[PathLike],bool]=None):
+	def __init__(self, input_directories:MutableQueue[PathLike]=None, should_skip:Callable[[PathLike],bool]=None):
 		logger = getLogger(__name__)
 		self.output_audio: Queue[PathLike] = Queue()
 		self.output_skipped: Queue[PathLike] = Queue()
@@ -19,7 +21,7 @@ class AudioScanner():
 			self.input_directories = input_directories
 			logger.debug(f'inherited input directories queue: {input_directories}')
 		else:
-			self.input_directories: Queue[PathLike] = Queue()
+			self.input_directories: MutableQueue[PathLike] = MutableQueue()
 			if input_directories is not None:
 				for directory in input_directories:
 					self.input_directories.put(directory)
@@ -140,6 +142,13 @@ class AudioScanner():
 		self.__current_path = None
 		self.input_directories.task_done()
 		logger.debug(f'{self.input_directories.unfinished_tasks} unfinished directories')
+
+	def __getattr__(self, name):
+		if name == 'current_directory':
+			return self.__current_directory
+		if name == 'current_path':
+			return self.__current_path
+		raise AttributeError(name=name, obj=self)
 
 	def __del__(self):
 		self.close_current_directory()
