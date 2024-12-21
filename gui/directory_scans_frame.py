@@ -46,6 +46,8 @@ class DirectoryScansFrame(LabelFrame):
 		logger.debug(f'grid configured: {self}')
 		
 	def __directory_item_destroyed(self, event: Event):
+		logger = getLogger(__name__)
+		logger.debug(f'directory item destroyed: {event.widget}')
 		self.remove_directory(event.widget)
 
 	def add_directory(self, directory:PathLike=None)->bool:
@@ -85,11 +87,19 @@ class DirectoryScansFrame(LabelFrame):
 
 	def remove_directory(self, item:InputDirectoryItem):
 		logger = getLogger(__name__)
-		path = item.get()
-		self.directories.remove(abspath(path))
+		path = abspath(item.get())
+		self.directories.remove(path)
 		item.unbind('<Destroy>', self.__destroy_bindings[item])
 		del self.__destroy_bindings[item]
-		logger.info(f'input directory removed: {fspath(path)}')
+		if self.scanner.current_directory == path:
+			self.scanner.close_current_directory()
+		else:
+			try:
+				self.scanner.input_directories.remove(path)
+				logger.debug(f'input directory removed from queue: {path}')
+			except ValueError:
+				logger.debug(f'removed input directory not in scanner: {path}')
+		logger.info(f'input directory removed: {path}')
 		if len(self.directories) < 1:
 			self.scan_task.unschedule()
 		self.__layout_items()
@@ -98,6 +108,8 @@ class DirectoryScansFrame(LabelFrame):
 		logger = getLogger(__name__)
 		to_destroy = list(self.content_box.content.winfo_children())
 		self.scan_task.unschedule()
+		self.scanner.close_current_directory()
+		self.scanner.input_directories.clear()
 		self.directories.clear()
 		for item in to_destroy:
 			item.unbind('<Destroy>', self.__destroy_bindings[item])
@@ -176,6 +188,7 @@ class DirectoryScansFrame(LabelFrame):
 
 	def __continue_scan(self):
 		logger = getLogger(__name__)
+		logger.debug('continuing scan...')
 		try:
 			self.scanner.continue_scan()
 		except StopIteration:
@@ -190,6 +203,8 @@ class DirectoryScansFrame(LabelFrame):
 
 	def destroy(self):
 		self.scan_task.unschedule()
+		self.scanner.close_current_directory()
+		self.scanner.input_directories.clear()
 		for item in self.content_box.content.winfo_children():
 			if item in self.__destroy_bindings:
 				item.unbind('<Destroy>', self.__destroy_bindings[item])
