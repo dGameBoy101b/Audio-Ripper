@@ -3,50 +3,56 @@ from os.path import dirname, isdir, abspath
 from queue import Empty
 from tkinter.ttk import Labelframe, Button, Frame
 from tkinter import Event, filedialog
+from logging import getLogger
 
+from ..audio_scanner import AudioScanner
+
+from .recurring_tkinter_task import ReccuringTkinterTask
 from .widget_exploration import explore_descendants
 from .vertical_box import VerticalBox
-from ..audio_scanner import AudioScanner
 from .input_file_item import InputFileItem
 from .input_directory_item import InputDirectoryItem
-from logging import getLogger
 
 class InputFrame(Labelframe):
 
 	def __init__(self, master=None, **kwargs):
-		logger = getLogger(__name__)
-
 		super().__init__(master, text='Input', **kwargs)
-		logger.debug('created input frame')
 
 		self.directory_items:list[InputDirectoryItem] = list()
 		self.file_items:list[InputFileItem] = list()
 		self.paths:set[str] = set()
-		self.__scan_task_id:str|None = None
+		self.scan_task = ReccuringTkinterTask(self, 0, self.__continue_scan)
 		self.scanner = AudioScanner(should_skip=self.should_skip)
 		self.__destroy_bindings = dict()
-		logger.debug('setup input frame variables')
 
+		self.__create_widgets()
+		self.__configure_grid()
+
+	def __create_widgets(self):
+		logger = getLogger(__name__)
+		logger.debug(f'creating widgets... {self}')
 		self.header_frame = Frame(self)
 		self.add_files_button = Button(self.header_frame, command=self.add_files, text='Add Files')
 		self.add_directories_button = Button(self.header_frame, command=self.add_directory, text='Scan Directory')
 		self.clear_files_button = Button(self.header_frame, command=self.remove_all_files, text='Clear Files')
 		self.clear_directories_button = Button(self.header_frame, command=self.remove_all_directories, text='Clear Directories')
 		self.content_box = VerticalBox(self)
-		logger.debug('created input frame children')
+		logger.debug(f'widgets created: {self}')
 
+	def __configure_grid(self):
+		logger = getLogger(__name__)
+		logger.debug(f'configuring grid... {self}')
 		self.header_frame.grid(row=0, column=0, sticky='EW')
 		self.content_box.grid(row=1, column=0, sticky='NSEW')
 		self.content_box.content.columnconfigure(0, weight=1)
 		self.columnconfigure(0, weight=1)
 		self.rowconfigure(1, weight=1)
-
 		self.add_files_button.grid(row=0, column=0, sticky='EW')
 		self.add_directories_button.grid(row=0, column=1, sticky='EW')
 		self.clear_files_button.grid(row=1, column=0, sticky='EW')
 		self.clear_directories_button.grid(row=1, column=1, sticky='EW')
 		self.header_frame.columnconfigure([0,1], weight=1)
-		logger.debug('layed out input frame')
+		logger.debug(f'grid configured: {self}')
 
 	def __increment_progress(self, directory:PathLike):
 		logger = getLogger(__name__)
@@ -162,41 +168,22 @@ class InputFrame(Labelframe):
 
 	def __continue_scan(self):
 		logger = getLogger(__name__)
-		self.__scan_task_id = None
 		try:
 			self.scanner.continue_scan()
 		except StopIteration:
 			logger.warning('attempted to continue scan while input directory queue empty')
+			self.scan_task.unschedule()
 			return
 		logger.debug('continued input directory scan')
 		self.update()
 		self.__check_progress()
 		logger.debug('checked scan progress')
 		self.update()
-		self.schedule_scan()
-
-	def schedule_scan(self, milliseconds:int=0)->bool:
-		logger = getLogger(__name__)
-		if len(self.directory_items) < 1:
-			return False
-		if self.is_scan_scheduled():
-			return True
-		self.__scan_task_id = self.after(milliseconds, self.__continue_scan)
-		logger.debug(f'scheduled directory scan in {milliseconds} milliseconds')
-		return True
-	
-	def is_scan_scheduled(self)->bool:
-		return self.__scan_task_id is not None
-	
-	def cancel_scan(self):
-		if self.is_scan_scheduled():
-			self.after_cancel(self.__scan_task_id)
-			self.__scan_task_id = None
 
 	def __directory_item_destroyed(self, event: Event):
 		self.remove_directory(event.widget)
 
-	def add_directory(self, directory:PathLike=None, enqueue:bool=True)->bool:
+	def add_directory(self, directory:PathLike=None)->bool:
 		logger = getLogger(__name__)
 
 		if directory == None:
@@ -226,10 +213,9 @@ class InputFrame(Labelframe):
 			self.content_box.bind_scroll_forwarding(widget)
 		self.directory_items.append(item)
 		self.paths.add(abspath(directory))
-		if enqueue:
-			self.scanner.input_directories.put(directory)
+		self.scanner.input_directories.put(directory)
+		self.scan_task.schedule()
 		logger.info(f'input directory added: {fspath(directory)}')
-		self.schedule_scan()
 		self.__layout_items()
 		return True
 
@@ -241,14 +227,15 @@ class InputFrame(Labelframe):
 		item.unbind('<Destroy>', self.__destroy_bindings[item])
 		del self.__destroy_bindings[item]
 		logger.info(f'input directory removed: {fspath(path)}')
-		self.schedule_scan()
+		if len(self.directory_items) < 1:
+			self.scan_task.unschedule()
 		self.__layout_items()
 
 	def remove_all_directories(self):
 		logger = getLogger(__name__)
 		to_destroy = list(self.directory_items)
 		paths = set([abspath(item.get()) for item in self.directory_items])
-		self.cancel_scan()
+		self.scan_task.unschedule()
 		self.directory_items.clear()
 		self.paths -= paths
 		for item in to_destroy:
@@ -271,7 +258,7 @@ class InputFrame(Labelframe):
 		self.update()
 
 	def destroy(self):
-		self.cancel_scan()
+		self.scan_task.unschedule()
 		for item in self.file_items + self.directory_items:
 			item.unbind('<Destroy>', self.__destroy_bindings[item])
 		self.__destroy_bindings.clear()
