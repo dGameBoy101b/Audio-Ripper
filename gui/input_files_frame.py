@@ -12,7 +12,7 @@ from .widget_exploration import explore_descendants
 
 class InputFilesFrame(LabelFrame):
 	def __init__(self, is_audio:Callable[[PathLike],bool], master:Misc=None, **kwargs):
-		super().__init__(master, **kwargs, text='Audio Files')
+		super().__init__(master, **kwargs, text='Input Files')
 		self.files: list[PathLike] = list()
 		self.is_audio = is_audio
 		self.__destroy_bindings = dict()
