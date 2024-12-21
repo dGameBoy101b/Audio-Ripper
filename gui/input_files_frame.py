@@ -39,7 +39,7 @@ class InputFilesFrame(LabelFrame):
 		logger.debug(f'grid configured: {self}')
 	
 	def __file_item_destroyed(self, event:Event):
-		self.remove_file(event.widget)
+		self.remove_file_item(event.widget)
 
 	def __layout_items(self):
 		logger = getLogger(__name__)
@@ -82,13 +82,21 @@ class InputFilesFrame(LabelFrame):
 		logger.info(f'audio input file added: {fspath(filename)}')
 		self.__layout_items()
 
-	def remove_file(self, item:InputFileItem):
+	def remove_file(self, filename:PathLike):
+		path = abspath(filename)
+		for item in self.content_box.content.winfo_children():
+			if isinstance(item, InputFileItem) and abspath(item.get()) == path:
+				self.remove_file_item(item)
+				return
+		raise ValueError(f'input file item not found: {path}')
+
+	def remove_file_item(self, item:InputFileItem):
 		logger = getLogger(__name__)
-		path = item.get()
-		self.files.remove(abspath(path))
+		path = abspath(item.get())
+		self.files.remove(path)
 		item.unbind('<Destroy>', self.__destroy_bindings[item])
 		del self.__destroy_bindings[item]
-		logger.info(f'input file removed: {abspath(path)}')
+		logger.info(f'input file removed: {path}')
 		self.__layout_items()
 
 	def remove_all_files(self):
