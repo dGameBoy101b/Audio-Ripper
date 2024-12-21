@@ -33,7 +33,7 @@ class MutableQueue(Queue):
 		items = self.get_nowait_all()
 		count = len(items)
 		del items[index]
-		self.put_nowait_all(items)
+		self.put_all(items)
 		self.tasks_done(count)
 
 	def remove(self, *items):
@@ -53,7 +53,7 @@ class MutableQueue(Queue):
 					del to_remove[item]
 			else:
 				to_enqueue.append(item)
-		self.put_nowait_all(to_enqueue if len(to_remove) < 1 else dequeued)
+		self.put_all(to_enqueue if len(to_remove) < 1 else dequeued)
 		self.tasks_done(len(dequeued))
 		if len(to_remove) > 0:
 			raise ValueError(*to_remove.keys())
