@@ -88,10 +88,8 @@ class InputFilesFrame(LabelFrame):
 
 	def remove_all_files(self):
 		logger = getLogger(__name__)
-		to_destroy = list(self.file_items)
-		paths = set([abspath(item.get()) for item in self.file_items])
-		self.file_items.clear()
-		self.paths -= paths
+		to_destroy = list(self.content_box.content.winfo_children())
+		self.files.clear()
 		for item in to_destroy:
 			item.unbind('<Destroy>', self.__destroy_bindings[item])
 			del self.__destroy_bindings[item]
