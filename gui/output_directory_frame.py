@@ -18,7 +18,7 @@ class OutputDirectoryFrame(Frame):
 		logger = getLogger(__name__)
 		logger.debug(f'creating widgets... {self}')
 		self.variable = StringVar(self)
-		self.label = Label(self, text='Output Directory')
+		self.label = Label(self, text='Output Directory: ')
 		self.entry = Entry(self, justify='left', textvariable=self.variable)
 		self.browse_button = Button(self, text='Browse...', command=self.ask)
 		logger.debug(f'widgets created: {self}')
