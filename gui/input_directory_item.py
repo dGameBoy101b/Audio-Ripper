@@ -1,6 +1,5 @@
 from os import PathLike, scandir, listdir
 from tkinter import ttk
-from typing import Callable
 from tkinter import StringVar, IntVar
 from logging import getLogger
 from os.path import abspath
