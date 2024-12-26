@@ -27,7 +27,7 @@ class OutputFileItem(Frame):
 		logger = getLogger(__name__)
 		logger.debug(f'configuring grid... {self}')
 		self.path_entry.grid(row=0, column=0, sticky='EW')
-		self.progress_bar.grid(row=1, column=0, stiky='EW')
+		self.progress_bar.grid(row=1, column=0, sticky='EW')
 		logger.debug(f'grid configured: {self}')
 
 	def started(self, future:Future):
