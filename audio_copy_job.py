@@ -14,4 +14,4 @@ class AudioCopyJob(Job):
 			return self.args[1]
 		if name == 'output_args':
 			return self.kwargs
-		raise AttributeError(name=name, object=self)
+		raise AttributeError(name=name, obj=self)
