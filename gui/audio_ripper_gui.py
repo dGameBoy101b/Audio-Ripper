@@ -1,10 +1,12 @@
 from logging import getLogger
 from logging.config import dictConfig
 from tkinter.ttk import PanedWindow
+from concurrent.futures import ProcessPoolExecutor
 
+from ..job_executor import JobExecutor
 from ..audio_scanner import AudioScanner
-from .directory_scans_frame import DirectoryScansFrame
 
+from .directory_scans_frame import DirectoryScansFrame
 from .input_files_frame import InputFilesFrame
 from .settings_frame import SettingsFrame
 from .output_files_frame import OutputFilesFrame
@@ -24,7 +26,9 @@ class AudioRipperGUI(PanedWindow):
 		scanner = AudioScanner()
 		self.files_frame = InputFilesFrame(scanner.is_audio, self)
 		self.scans_frame = DirectoryScansFrame(self.files_frame, scanner, self)
-		self.output_frame = OutputFilesFrame(self)
+		executor = ProcessPoolExecutor()
+		job_executor = JobExecutor(executor)
+		self.output_frame = OutputFilesFrame(job_executor, self.files_frame, self.settings_frame, self)
 		logger.debug(f'created widgets: {self}')
 
 	def __configure_grid(self):
