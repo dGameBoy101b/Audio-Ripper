@@ -3,7 +3,7 @@ from os import PathLike, fspath, scandir
 from queue import Empty, Queue
 from typing import Callable, Generator, Self
 from os.path import isdir, isfile
-from ffprobe import FFProbe
+from ffprobe3 import probe as ffprobe
 
 from .mutable_queue import MutableQueue
 
@@ -37,7 +37,7 @@ class AudioScanner():
 			return False
 		logger.debug(f'probing file: {fspath(path)}')
 		try:
-			probe = FFProbe(path)
+			probe = ffprobe(path)
 		except Exception as x:
 			raise RuntimeError(f"Failed to probe file: {fspath(path)}", x)
 		return len(probe.audio) > 0
