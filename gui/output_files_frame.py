@@ -72,6 +72,7 @@ class OutputFilesFrame(LabelFrame):
 			self.job_executor.jobs.put(job)
 			item = OutputFileItem(job.output_path, self.content_box.content)
 			items.append(item)
+			self.content_box.bind_scroll_forwarding(item)
 			self.__layout_items()
 			self.update()
 		logger.debug(f'{len(items)} items created')
