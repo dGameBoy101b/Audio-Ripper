@@ -93,12 +93,13 @@ class DirectoryScansFrame(LabelFrame):
 		del self.__destroy_bindings[item]
 		if self.scanner.current_directory == path:
 			self.scanner.close_current_directory()
+			logger.debug(f'input directory closed: {path}')
 		else:
 			try:
 				self.scanner.input_directories.remove(path)
 				logger.debug(f'input directory removed from queue: {path}')
 			except ValueError:
-				logger.debug(f'removed input directory not in scanner: {path}')
+				logger.warning(f'removed input directory not in scanner: {path}')
 		logger.info(f'input directory removed: {path}')
 		if len(self.directories) < 1:
 			self.scan_task.unschedule()
@@ -117,11 +118,13 @@ class DirectoryScansFrame(LabelFrame):
 			item.destroy()
 		logger.info(f'cleared all {len(to_destroy)} directories')
 		self.__layout_items()
-		
+
 	def __layout_items(self):
 		logger = getLogger(__name__)
 		row = 0
 		for item in self.content_box.content.winfo_children():
+			if not item.winfo_exists():
+				continue
 			item.grid(column=0, row=row, sticky='EW')
 			row += 1
 		logger.info(f'layed out {row} input scan items')
