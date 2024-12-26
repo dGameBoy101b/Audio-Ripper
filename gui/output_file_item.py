@@ -32,6 +32,7 @@ class OutputFileItem(Frame):
 
 	def started(self, future:Future):
 		self.future = future
+		self.progress_bar.configure(mode='indeterminate')
 		self.progress_bar.start()
 		self.check_progress_task.schedule()
 
@@ -45,6 +46,7 @@ class OutputFileItem(Frame):
 		if self.future.cancelled():
 			logger.info(f'rip job cancelled: {self}')
 			self.check_progress_task.unschedule()
+			self.progress_bar.config(mode='determinate')
 			self.progress_bar.stop()
 			self.progress_variable.set(0)
 			return
@@ -52,6 +54,7 @@ class OutputFileItem(Frame):
 			logger.info(f'rip job completed: {self}')
 			self.check_progress_task.unschedule()
 			self.progress_bar.stop()
+			self.progress_bar.config(mode='determinate')
 			self.progress_variable.set(100)
 			return
 		logger.debug(f'no progress found: {self}')
