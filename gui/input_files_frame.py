@@ -45,6 +45,8 @@ class InputFilesFrame(LabelFrame):
 		logger = getLogger(__name__)
 		row = 0
 		for item in self.content_box.content.winfo_children():
+			if not item.winfo_exists():
+				continue
 			item.grid(column=0, row=row, sticky='EW')
 			row += 1
 		logger.info(f'layed out {row} input file items')
