@@ -12,8 +12,10 @@ class FileExtensionFrame(ttk.Frame):
 		self.entry = ttk.Entry(self, width=5)
 		self.entry.grid(column=1, row=0, sticky='EW')
 
-	def get(self):
+	def get(self)->str|None:
 		value = self.entry.get()
+		if value == '':
+			return None
 		if value[0] != '.':
 			return '.'+value
 		return value

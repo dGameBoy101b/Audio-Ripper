@@ -55,8 +55,6 @@ class OutputFilesFrame(LabelFrame):
 		output_dir = self.settings.directory.get()
 		logger.debug(f'output directory: {abspath(output_dir)}')
 		output_extension = self.settings.file_extension.get()
-		if output_extension == '':
-			output_extension = None
 		logger.debug(f'output extension: {output_extension}')
 		metadata_overrides = self.settings.metadata_overrides.get()
 		logger.debug(f'metadata overrides: {''.join([f'{key}={metadata_overrides[key]}\n' for key in metadata_overrides])}')
