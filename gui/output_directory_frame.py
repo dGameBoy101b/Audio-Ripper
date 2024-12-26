@@ -1,7 +1,6 @@
 from logging import getLogger
 from os import PathLike, fspath
-from os.path import isdir
-from posixpath import abspath
+from os.path import isdir, abspath
 from tkinter import StringVar
 from tkinter.ttk import Button, Entry, Frame, Label
 from tkinter.filedialog import askdirectory
