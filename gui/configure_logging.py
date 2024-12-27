@@ -1,5 +1,6 @@
-from logging import DEBUG
+from logging import DEBUG, INFO
 from os.path import join, dirname
+from sys import stdout
 from ..exclude_filter import ExcludeFilter
 
 config_dict = {
@@ -26,13 +27,23 @@ config_dict = {
 			'filters':[
 				'not_ffprobe'
 			]
+		},
+		'console':{
+			'class': 'logging.StreamHandler',
+			'formatter': 'default',
+			'level': INFO,
+			'stream': stdout,
+			'filters':[
+				'not_ffprobe'
+			]
 		}
 	},
 	'loggers':{
 		'root':{
 			'level':DEBUG,
 			'handlers':[
-				'file'
+				'file',
+				'console'
 			]
 		}
 	}
