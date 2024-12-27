@@ -33,10 +33,12 @@ class OutputFileItem(Frame):
 		logger.debug(f'grid configured: {self}')
 
 	def started(self, future:Future):
+		logger = getLogger(__name__)
 		self.future = future
 		self.progress_bar.configure(mode='indeterminate')
 		self.progress_bar.start()
 		self.check_progress_task.schedule()
+		logger.info(f'rip job started: {self.path_variable.get()}')
 
 	def __check_progress(self):
 		logger = getLogger(__name__)
