@@ -49,7 +49,7 @@ class InputFilesFrame(LabelFrame):
 				continue
 			item.grid(column=0, row=row, sticky='EW')
 			row += 1
-		logger.info(f'layed out {row} input file items')
+		logger.debug(f'layed out {row} input file items')
 		self.update()
 
 	def ask_files(self)->int:
