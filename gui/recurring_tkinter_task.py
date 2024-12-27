@@ -31,7 +31,7 @@ class ReccuringTkinterTask():
 	def __run(self):
 		logger = getLogger(__name__)
 		self.callback()
-		logger.info(f'run recurring task on {self.widget}: {self.callback}')
+		logger.debug(f'run recurring task on {self.widget}: {self.callback}')
 		if self.__id is not None:
 			self.__id = None
 			self.schedule()
