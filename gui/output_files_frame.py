@@ -1,11 +1,8 @@
 from logging import getLogger
-from os import PathLike, strerror
-from os.path import abspath, join, basename, exists
+from os.path import abspath, join, basename
 from tkinter import Misc
 from tkinter.ttk import Button, LabelFrame
 from typing import Iterable
-from tkinter.messagebox import showerror
-from errno import ENOENT
 
 from ..audio_copy_job import AudioCopyJob
 from ..job_executor import JobExecutor
@@ -17,10 +14,6 @@ from .output_file_item import OutputFileItem
 from .input_files_frame import InputFilesFrame
 from .settings_frame import SettingsFrame
 from .widget_exploration import explore_descendants
-
-class OutputDirectoryNotFoundError(FileNotFoundError):
-	def __init__(self, filename:PathLike):
-		super().__init__(ENOENT, strerror(ENOENT), filename)
 
 class OutputFilesFrame(LabelFrame):
 	def __init__(self, job_executor:JobExecutor, input_files:InputFilesFrame, settings:SettingsFrame, master:Misc=None, **kwargs):
@@ -34,7 +27,7 @@ class OutputFilesFrame(LabelFrame):
 	def __create_widgets(self):
 		logger = getLogger(__name__)
 		logger.debug(f'creating widgets... {self}')
-		self.rip_button = Button(self, text='Start Rip', command=self.ask_start_rip)
+		self.rip_button = Button(self, text='Start Rip', command=self.start_rip)
 		self.content_box = VerticalBox(self)
 		logger.debug(f'widgets created: {self}')
 
@@ -62,8 +55,6 @@ class OutputFilesFrame(LabelFrame):
 		logger.debug(f'creating jobs... {self}')
 		files = tuple(self.input_files.get())
 		output_dir = self.settings.directory.get()
-		if not exists(output_dir):
-			raise OutputDirectoryNotFoundError(output_dir)
 		logger.debug(f'output directory: {abspath(output_dir)}')
 		output_extension = self.settings.file_extension.get()
 		logger.debug(f'output extension: {output_extension}')
@@ -89,12 +80,6 @@ class OutputFilesFrame(LabelFrame):
 			self.update()
 		logger.debug(f'{len(items)} items created')
 		return items
-	
-	def ask_start_rip(self):
-		try:
-			self.start_rip()
-		except OutputDirectoryNotFoundError as x:
-			showerror('No output directory', f'Output directory not found: "{x.filename}"')
 		
 	def start_rip(self):
 		logger = getLogger(__name__)
