@@ -7,6 +7,17 @@ from ffprobe3 import probe as ffprobe
 
 from .mutable_queue import MutableQueue
 
+def is_audio(path:PathLike)->bool:
+	logger = getLogger(__name__)
+	if not isfile(path):
+		return False
+	logger.debug(f'probing file: {fspath(path)}')
+	try:
+		probe = ffprobe(abspath(path))
+	except Exception as x:
+		raise RuntimeError(f"Failed to probe file: {fspath(path)}", x)
+	return len(probe.audio) > 0
+
 class AudioScanner():
 
 	def __init__(self, input_directories:MutableQueue[PathLike]=None, should_skip:Callable[[PathLike],bool]=None):
@@ -28,20 +39,6 @@ class AudioScanner():
 				logger.debug(f'filled input directories queue: {input_directories}')
 		self.should_skip = (lambda path: False) if should_skip is None else should_skip
 
-	def is_directory(self, path:PathLike)->bool:
-		return isdir(path)
-
-	def is_audio(self, path:PathLike)->bool:	
-		logger = getLogger(__name__)
-		if not isfile(path):
-			return False
-		logger.debug(f'probing file: {fspath(path)}')
-		try:
-			probe = ffprobe(abspath(path))
-		except Exception as x:
-			raise RuntimeError(f"Failed to probe file: {fspath(path)}", x)
-		return len(probe.audio) > 0
-
 	def try_output_skip(self, path:PathLike)->bool:
 		if not self.should_skip(path):
 			return False
@@ -54,7 +51,7 @@ class AudioScanner():
 		self.output_skipped.put(path)
 	
 	def try_output_directory(self, path:PathLike)->bool:
-		if not self.is_directory(path):
+		if not isdir(path):
 			return False
 		self.output_directory(path)
 		return True
@@ -67,11 +64,11 @@ class AudioScanner():
 	def try_output_audio_file(self, path:PathLike)->bool:
 		logger = getLogger(__name__)
 		try:
-			is_audio = self.is_audio(path)
+			result = is_audio(path)
 		except RuntimeError as x:
 			logger.error(f'failed to identify audio: {fspath(path)}', exc_info=x)
 			return False
-		if not is_audio:
+		if not result:
 			return False
 		self.output_audio_file(path)
 		return True

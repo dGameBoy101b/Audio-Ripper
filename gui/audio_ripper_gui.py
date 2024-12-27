@@ -4,7 +4,7 @@ from tkinter.ttk import PanedWindow
 from concurrent.futures import ProcessPoolExecutor
 
 from ..job_executor import JobExecutor
-from ..audio_scanner import AudioScanner
+from ..audio_scanner import AudioScanner, is_audio
 
 from .directory_scans_frame import DirectoryScansFrame
 from .input_files_frame import InputFilesFrame
@@ -24,7 +24,7 @@ class AudioRipperGUI(PanedWindow):
 		logger.debug(f'creating widgets... {self}')
 		self.settings_frame = SettingsFrame(self)
 		scanner = AudioScanner()
-		self.files_frame = InputFilesFrame(scanner.is_audio, self)
+		self.files_frame = InputFilesFrame(is_audio, self)
 		self.scans_frame = DirectoryScansFrame(self.files_frame, scanner, self)
 		executor = ProcessPoolExecutor()
 		job_executor = JobExecutor(executor)

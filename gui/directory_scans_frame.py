@@ -64,7 +64,7 @@ class DirectoryScansFrame(LabelFrame):
 			logger.warning(f'duplicate input directory given: {fspath(directory)}')
 			return False
 			
-		if not self.scanner.is_directory(directory):
+		if not isdir(directory):
 			logger.warning(f'non-directory given as input directory: {fspath(directory)}')
 			return False
 		
