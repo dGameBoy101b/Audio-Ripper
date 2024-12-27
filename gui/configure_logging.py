@@ -1,6 +1,8 @@
-from logging import DEBUG, INFO
+from logging import DEBUG, INFO, WARNING
 from os.path import join, dirname
-from sys import stdout
+from sys import stderr, stdout
+
+from ..max_level_filter import MaxLevelFilter
 from ..exclude_filter import ExcludeFilter
 
 config_dict = {
@@ -15,6 +17,10 @@ config_dict = {
 		'not_ffprobe':{
 			'()': ExcludeFilter,
 			'name': 'ffprobe'
+		},
+		'max_level_info':{
+			'()': MaxLevelFilter,
+			'level': INFO
 		}
 	},
 	'handlers':{
@@ -28,11 +34,21 @@ config_dict = {
 				'not_ffprobe'
 			]
 		},
-		'console':{
+		'info_console':{
 			'class': 'logging.StreamHandler',
 			'formatter': 'default',
 			'level': INFO,
 			'stream': stdout,
+			'filters':[
+				'not_ffprobe',
+				'max_level_info'
+			]
+		},
+		'error_console':{
+			'class': 'logging.StreamHandler',
+			'formatter': 'default',
+			'level': WARNING,
+			'stream': stderr,
 			'filters':[
 				'not_ffprobe'
 			]
@@ -43,7 +59,8 @@ config_dict = {
 			'level':DEBUG,
 			'handlers':[
 				'file',
-				'console'
+				'info_console',
+				'error_console'
 			]
 		}
 	}
