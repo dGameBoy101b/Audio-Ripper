@@ -6,6 +6,9 @@ def copy_media(output_filepath:PurePath, input_filepath:PurePath, **kwargs):
 	logger = logging.getLogger(__name__)
 	output_filepath = PurePath(output_filepath)
 	input_filepath = PurePath(input_filepath)
+	if output_filepath == input_filepath:
+		logger.debug(f'skipped copying to same path: {input_filepath}')
+		return
 	logger.info(f'copying {input_filepath} to {output_filepath}')
 	Path(output_filepath.parent).mkdir(parents=True, exist_ok=True)
 	logger.debug(f'creating input stream: {input_filepath}')
@@ -15,7 +18,7 @@ def copy_media(output_filepath:PurePath, input_filepath:PurePath, **kwargs):
 	logger.debug('creating overwrite stream')
 	overwrite_stream = ffmpeg.overwrite_output(output_stream)
 	logger.debug('running ffmpeg...')
-	(_, out) = ffmpeg.run(overwrite_stream, quiet=True) #it's actually stderr that ffmpeg uses for reporting
+	(_, out) = ffmpeg.run(overwrite_stream, capture_stderr=True) #it's actually stderr that ffmpeg uses for reporting
 	if out:
 		logger.debug(out.decode())
 	logger.info(f'copied {input_filepath} to {output_filepath}')
