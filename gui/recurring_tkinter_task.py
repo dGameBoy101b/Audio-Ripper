@@ -18,7 +18,7 @@ class ReccuringTkinterTask():
 			logger.warning(f'recurring task already scheduled on {self.widget}: {self.callback}')
 			return
 		self.__id = self.widget.after(self.delay_ms, self.__run)
-		logger.info(f'scheduled task recurring every {self.delay_ms} on {self.widget}: {self.callback}')
+		logger.debug(f'scheduled task recurring every {self.delay_ms} on {self.widget}: {self.callback}')
 
 	def unschedule(self):
 		logger = getLogger(__name__)
@@ -26,7 +26,7 @@ class ReccuringTkinterTask():
 			return
 		self.widget.after_cancel(self.__id)
 		self.__id = None
-		logger.info(f'unscheduled recurring task on {self.widget}: {self.callback}')
+		logger.debug(f'unscheduled recurring task on {self.widget}: {self.callback}')
 
 	def __run(self):
 		logger = getLogger(__name__)
