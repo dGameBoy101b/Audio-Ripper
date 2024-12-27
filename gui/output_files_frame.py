@@ -36,6 +36,7 @@ class OutputFilesFrame(LabelFrame):
 		logger.debug(f'configuring grid... {self}')
 		self.rip_button.grid(row=0, column=0, sticky='EW')
 		self.content_box.grid(row=1, column=0, sticky='NSEW')
+		self.content_box.content.columnconfigure(0, weight=1)
 		self.columnconfigure(0, weight=1)
 		self.rowconfigure(1, weight=1)
 		logger.debug(f'grid configured: {self}')
