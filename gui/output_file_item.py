@@ -2,9 +2,10 @@ from concurrent.futures import Future
 from logging import getLogger
 from os import PathLike
 from tkinter import DoubleVar, Misc, StringVar
-from tkinter.ttk import Entry, Frame, Progressbar
+from tkinter.ttk import Entry, Frame
 
 from .recurring_tkinter_task import ReccuringTkinterTask
+from .realtime_progressbar import RealtimeProgressbar
 
 class OutputFileItem(Frame):
 	def __init__(self, path:PathLike, master:Misc=None, **kwargs):
@@ -20,7 +21,7 @@ class OutputFileItem(Frame):
 		self.path_variable = StringVar(self, path)
 		self.path_entry = Entry(self, textvariable=self.path_variable, state='readonly')
 		self.progress_variable = DoubleVar(self)
-		self.progress_bar = Progressbar(self, mode='indeterminate', variable=self.progress_variable)
+		self.progress_bar = RealtimeProgressbar(self, mode='indeterminate', variable=self.progress_variable)
 		logger.debug(f'widgets created: {self}')
 
 	def __configure_grid(self):
