@@ -5,7 +5,7 @@ from .recurring_tkinter_task import ReccuringTkinterTask
 
 class RealtimeProgressbar(Progressbar):
 	
-	def __init__(self, rate:float=1, delay:int=50, now:Callable[[],float]=perf_counter, *args, **kwargs):
+	def __init__(self, rate:float=20, delay:int=50, now:Callable[[],float]=perf_counter, *args, **kwargs):
 		self.rate = rate
 		self.last = None
 		self.now = now
