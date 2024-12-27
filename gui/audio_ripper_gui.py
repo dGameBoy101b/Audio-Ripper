@@ -12,6 +12,7 @@ from .input_files_frame import InputFilesFrame
 from .settings_frame import SettingsFrame
 from .output_files_frame import OutputFilesFrame
 from .configure_logging import config_dict
+from .resiliant_executor import ResiliantExecutor
 
 class AudioRipperGUI(PanedWindow):
 	MAX_WORKERS = 60
@@ -36,7 +37,7 @@ class AudioRipperGUI(PanedWindow):
 		scanner = AudioScanner()
 		self.files_frame = InputFilesFrame(is_audio, self)
 		self.scans_frame = DirectoryScansFrame(self.files_frame, scanner, self)
-		executor = ProcessPoolExecutor(AudioRipperGUI.max_workers())
+		executor = ResiliantExecutor(ProcessPoolExecutor, max_workers=AudioRipperGUI.max_workers())
 		job_executor = JobExecutor(executor)
 		self.output_frame = OutputFilesFrame(job_executor, self.files_frame, self.settings_frame, self)
 		logger.debug(f'created widgets: {self}')
