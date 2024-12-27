@@ -1,15 +1,12 @@
-from logging import DEBUG, INFO, WARNING
+from logging import DEBUG
 from os.path import join, dirname
-from sys import stderr, stdout
-
-from ..max_level_filter import MaxLevelFilter
 from ..exclude_filter import ExcludeFilter
 
 config_dict = {
 	'version': 1,
 	'formatters':{
 		'default' : {
-			'format': "[{asctime}]{levelname}:{name}:{msg}",
+			'format': "{{{processName}}}[{asctime}]{levelname}:{name}:{msg}",
 			'style': "{"
 		}
 	},
