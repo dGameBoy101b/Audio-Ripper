@@ -3,7 +3,7 @@ from typing import Callable
 from time import perf_counter
 from .recurring_tkinter_task import ReccuringTkinterTask
 
-class RealtimeProgressBar(Progressbar):
+class RealtimeProgressbar(Progressbar):
 	
 	def __init__(self, rate:float=1, delay:int=50, now:Callable[[],float]=perf_counter, *args, **kwargs):
 		self.rate = rate
