@@ -88,4 +88,4 @@ class OutputFilesFrame(LabelFrame):
 		assert len(items) == len(futures)
 		for index in range(len(items)):
 			items[index].started(futures[index])
-		logger.info('rip started')
+		logger.info(f'started {len(items)} rip jobs')
