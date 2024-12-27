@@ -26,7 +26,7 @@ class ResiliantExecutor(Executor):
 			self.executor = self.create_executor()
 			logger.warning(f'executor revived: {old} -> {self.executor}')
 
-	def __try(self, fn:Callable[[],Any])->Any:
+	def retry(self, fn:Callable[[],Any])->Any:
 		try:
 			return fn()
 		except BrokenExecutor:
@@ -34,16 +34,16 @@ class ResiliantExecutor(Executor):
 			return fn()
 
 	def submit(self, fn, /, *args, **kwargs):
-		return self.__try(lambda: self.executor.submit(fn, *args, **kwargs))
+		return self.retry(lambda: self.executor.submit(fn, *args, **kwargs))
 		
 	def map(self, fn, *iterables, timeout=None, chunksize=1):
-		return self.__try(lambda: self.executor.map(fn, *iterables, timeout=timeout, chunksize=chunksize))
+		return self.retry(lambda: self.executor.map(fn, *iterables, timeout=timeout, chunksize=chunksize))
 		
 	def shutdown(self, wait = True, *, cancel_futures = False):
-		return self.__try(lambda: self.executor.shutdown(wait, cancel_futures=cancel_futures))
+		return self.retry(lambda: self.executor.shutdown(wait, cancel_futures=cancel_futures))
 	
 	def __enter__(self):
-		return self.__try(lambda: self.executor.__enter__())
+		return self.retry(lambda: self.executor.__enter__())
 	
 	def __exit__(self, exc_type, exc_val, exc_tb):
-		return self.__try(lambda: self.executor.__exit__(exc_type, exc_val, exc_tb))
+		return self.retry(lambda: self.executor.__exit__(exc_type, exc_val, exc_tb))
