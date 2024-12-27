@@ -57,11 +57,16 @@ class OutputFileItem(Frame):
 			self.progress_variable.set(0)
 			return
 		if self.future.done():
-			logger.info(f'rip job completed: {self.path_variable.get()}')
 			self.check_progress_task.unschedule()
 			self.progress_bar.stop()
+			exception = self.future.exception(timeout=0)
 			self.progress_bar.config(mode='determinate')
-			self.progress_variable.set(100)
+			if exception is None:
+				logger.info(f'rip job completed: {self.path_variable.get()}')
+				self.progress_variable.set(100)
+			else:
+				logger.error(f'rip job failed: {self.path_variable.get()}', exc_info=exception)
+				self.progress_variable.set(0)
 			return
 		logger.debug(f'no progress found: {self.path_variable.get()}')
 
