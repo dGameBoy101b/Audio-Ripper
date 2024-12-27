@@ -53,7 +53,7 @@ class OutputFilesFrame(LabelFrame):
 		row = 0
 		for item in self.content_box.content.winfo_children():
 			if item.winfo_exists():
-				item.grid(row=0, column=0, sticky='EW')
+				item.grid(row=row, column=0, sticky='EW')
 				row += 1
 		logger.debug(f'layed out {row} output file items')
 
