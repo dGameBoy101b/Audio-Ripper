@@ -13,6 +13,7 @@ from .vertical_box import VerticalBox
 from .output_file_item import OutputFileItem
 from .input_files_frame import InputFilesFrame
 from .settings_frame import SettingsFrame
+from .widget_exploration import explore_descendants
 
 class OutputFilesFrame(LabelFrame):
 	def __init__(self, job_executor:JobExecutor, input_files:InputFilesFrame, settings:SettingsFrame, master:Misc=None, **kwargs):
@@ -72,7 +73,8 @@ class OutputFilesFrame(LabelFrame):
 			self.job_executor.jobs.put(job)
 			item = OutputFileItem(job.output_path, self.content_box.content)
 			items.append(item)
-			self.content_box.bind_scroll_forwarding(item)
+			for child in explore_descendants(item):
+				self.content_box.bind_scroll_forwarding(child)
 			self.__layout_items()
 			self.update()
 		logger.debug(f'{len(items)} items created')
