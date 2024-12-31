@@ -2,21 +2,10 @@ from logging import getLogger
 from os import PathLike, fspath, scandir
 from queue import Empty, Queue
 from typing import Callable, Generator, Self
-from os.path import isdir, isfile, abspath
-from ffprobe3 import probe as ffprobe
+from os.path import isdir
 
 from .mutable_queue import MutableQueue
-
-def is_audio(path:PathLike)->bool:
-	logger = getLogger(__name__)
-	if not isfile(path):
-		return False
-	logger.debug(f'probing file: {fspath(path)}')
-	try:
-		probe = ffprobe(abspath(path))
-	except Exception as x:
-		raise RuntimeError(f"Failed to probe file: {fspath(path)}", x)
-	return len(probe.audio) > 0
+from .is_audio import is_audio
 
 class AudioScanner():
 
