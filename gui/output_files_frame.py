@@ -51,28 +51,35 @@ class OutputFilesFrame(LabelFrame):
 				row += 1
 		logger.debug(f'layed out {row} output file items')
 
-	def __create_jobs(self)->Iterable[Tuple[PathLike, Future]]:
+	def output_paths(self)->Iterable[Tuple[PathLike, PathLike]]:
 		logger = getLogger(__name__)
-		logger.debug(f'creating jobs... {self}')
+		logger.debug(f'generating output paths... {self}')
 		files = tuple(self.input_files.get())
 		output_dir = self.settings.directory.get()
 		logger.debug(f'output directory: {abspath(output_dir)}')
 		output_extension = self.settings.file_extension.get()
 		logger.debug(f'output extension: {output_extension}')
+		for input_path in files:
+			output_path = abspath(join(output_dir, change_file_extension(basename(input_path), output_extension)))
+			logger.debug(f'generated output path: {input_path} -> {output_path}')
+			yield (input_path, output_path)
+
+	def __create_futures(self)->Iterable[Tuple[PathLike, Future]]:
+		logger = getLogger(__name__)
+		logger.debug(f'creating jobs... {self}')
 		metadata_overrides = self.settings.metadata_overrides.get()
 		logger.debug(f'metadata overrides: {''.join([f'{key}={metadata_overrides[key]}\n' for key in metadata_overrides])}')
 		output_args = override_media_metadata(**metadata_overrides)
-		for input_path in files:
-			output_path = abspath(join(output_dir, change_file_extension(basename(input_path), output_extension)))
-			logger.debug(f'created job {input_path}->{output_path}: {self}')
+		for input_path, output_path in self.output_paths():
 			future = self.executor.submit(copy_media, output_path, input_path, **output_args)
+			logger.debug(f'created job {input_path}->{output_path}: {self}')
 			yield (output_path, future)
 
 	def __create_items(self)->list[OutputFileItem]:
 		logger = getLogger(__name__)
 		logger.debug(f'creating items... {self}')
 		items = list()
-		for path, future in self.__create_jobs():
+		for path, future in self.__create_futures():
 			item = OutputFileItem(path, future=future, master=self.content_box.content)
 			items.append(item)
 			for child in explore_descendants(item):
