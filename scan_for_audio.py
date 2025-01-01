@@ -1,10 +1,18 @@
 from collections.abc import Iterator
-from .audio_scanner import AudioScanner
-from os import PathLike
+from os import PathLike, scandir
+from os.path import isdir
 
-def scan_for_audio(*root_paths:list[PathLike])->Iterator[PathLike]:
-	with AudioScanner(root_paths) as scanner:
-		yield from scanner
+from .is_audio import is_audio
+
+def scan_for_audio(*root_paths:PathLike)->Iterator[PathLike]:
+	to_explore = list(reversed(root_paths))
+	while len(to_explore) > 0:
+		root = to_explore.pop()
+		for path in scandir(root):
+			if isdir(path):
+				to_explore.append(path)
+			elif is_audio(path):
+				yield path
 
 if __name__ == '__main__':
 	import logging
