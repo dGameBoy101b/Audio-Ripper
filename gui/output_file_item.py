@@ -36,6 +36,7 @@ class OutputFileItem(Frame):
 		if self.future is None:
 			self.destory_button.grid_remove()
 			self.progress_bar.grid_remove()
+			logger.debug(f'configuring grid in preview mode: {self}')
 		self.columnconfigure(0, weight=1)
 		logger.debug(f'grid configured: {self}')
 
@@ -69,6 +70,7 @@ class OutputFileItem(Frame):
 		if self.future.done():
 			self.check_progress_task.unschedule()
 			self.progress_bar.stop()
+			self.destory_button.grid_remove()
 			exception = self.future.exception(timeout=0)
 			self.progress_bar.config(mode='determinate')
 			if exception is None:
