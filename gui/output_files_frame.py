@@ -29,6 +29,7 @@ class OutputFilesFrame(LabelFrame):
 		logger = getLogger(__name__)
 		logger.debug(f'creating widgets... {self}')
 		self.rip_button = Button(self, text='Start Rip', command=self.start_rip)
+		self.clear_button = Button(self, text='Clear Ouput', command=self.clear)
 		self.content_box = VerticalBox(self)
 		logger.debug(f'widgets created: {self}')
 
@@ -36,9 +37,10 @@ class OutputFilesFrame(LabelFrame):
 		logger = getLogger(__name__)
 		logger.debug(f'configuring grid... {self}')
 		self.rip_button.grid(row=0, column=0, sticky='EW')
-		self.content_box.grid(row=1, column=0, sticky='NSEW')
+		self.clear_button.grid(row=0, column=1, sticky='EW')
+		self.content_box.grid(row=1, column=0, columnspan=2, sticky='NSEW')
 		self.content_box.content.columnconfigure(0, weight=1)
-		self.columnconfigure(0, weight=1)
+		self.columnconfigure([0,1], weight=1)
 		self.rowconfigure(1, weight=1)
 		logger.debug(f'grid configured: {self}')
 
@@ -94,3 +96,15 @@ class OutputFilesFrame(LabelFrame):
 		logger.info('starting rip...')
 		items = self.__create_items()
 		logger.info(f'started {len(items)} rip jobs')
+
+	def clear(self):
+		logger = getLogger(__name__)
+		logger.info('clearing output...')
+		count = 0
+		for widget in self.content_box.content.winfo_children():
+			if not widget.winfo_exists():
+				continue
+			widget.destroy()
+			count += 1
+		self.__layout_items()
+		logger.info(f'cleared {count} output items')
