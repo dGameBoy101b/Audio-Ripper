@@ -1,13 +1,14 @@
+from concurrent.futures import Executor, Future
 from logging import getLogger
+from os import PathLike
 from os.path import abspath, join, basename
 from tkinter import Misc
 from tkinter.ttk import Button, LabelFrame
-from typing import Iterable
+from typing import Iterable, Tuple
 
-from ..audio_copy_job import AudioCopyJob
-from ..job_executor import JobExecutor
 from ..change_file_extension import change_file_extension
-from .. override_media_metadata import override_media_metadata
+from ..override_media_metadata import override_media_metadata
+from ..copy_media import copy_media
 
 from .vertical_box import VerticalBox
 from .output_file_item import OutputFileItem
@@ -16,9 +17,9 @@ from .settings_frame import SettingsFrame
 from .widget_exploration import explore_descendants
 
 class OutputFilesFrame(LabelFrame):
-	def __init__(self, job_executor:JobExecutor, input_files:InputFilesFrame, settings:SettingsFrame, master:Misc=None, **kwargs):
+	def __init__(self, executor:Executor, input_files:InputFilesFrame, settings:SettingsFrame, master:Misc=None, **kwargs):
 		super().__init__(master, **kwargs, text='Output Files')
-		self.job_executor = job_executor
+		self.executor = executor
 		self.input_files = input_files
 		self.settings = settings
 		self.__create_widgets()
@@ -50,7 +51,7 @@ class OutputFilesFrame(LabelFrame):
 				row += 1
 		logger.debug(f'layed out {row} output file items')
 
-	def __create_jobs(self)->Iterable[AudioCopyJob]:
+	def __create_jobs(self)->Iterable[Tuple[PathLike, Future]]:
 		logger = getLogger(__name__)
 		logger.debug(f'creating jobs... {self}')
 		files = tuple(self.input_files.get())
@@ -64,15 +65,15 @@ class OutputFilesFrame(LabelFrame):
 		for input_path in files:
 			output_path = abspath(join(output_dir, change_file_extension(basename(input_path), output_extension)))
 			logger.debug(f'created job {input_path}->{output_path}: {self}')
-			yield AudioCopyJob(output_path, input_path, output_args)
+			future = self.executor.submit(copy_media, output_path, input_path, **output_args)
+			yield (output_path, future)
 
 	def __create_items(self)->list[OutputFileItem]:
 		logger = getLogger(__name__)
 		logger.debug(f'creating items... {self}')
 		items = list()
-		for job in self.__create_jobs():
-			self.job_executor.jobs.put(job)
-			item = OutputFileItem(job.output_path, self.content_box.content)
+		for path, future in self.__create_jobs():
+			item = OutputFileItem(path, future=future, master=self.content_box.content)
 			items.append(item)
 			for child in explore_descendants(item):
 				self.content_box.bind_scroll_forwarding(child)
@@ -85,8 +86,4 @@ class OutputFilesFrame(LabelFrame):
 		logger = getLogger(__name__)
 		logger.info('starting rip...')
 		items = self.__create_items()
-		futures = self.job_executor.start_jobs()
-		assert len(items) == len(futures)
-		for index in range(len(items)):
-			items[index].started(futures[index])
 		logger.info(f'started {len(items)} rip jobs')

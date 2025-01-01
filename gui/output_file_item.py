@@ -8,12 +8,14 @@ from .recurring_tkinter_task import ReccuringTkinterTask
 from .realtime_progressbar import RealtimeProgressbar
 
 class OutputFileItem(Frame):
-	def __init__(self, path:PathLike, master:Misc=None, **kwargs):
+	def __init__(self, path:PathLike, future:Future=None, master:Misc=None, **kwargs):
 		super().__init__(master, **kwargs)
 		self.future = None
 		self.check_progress_task = ReccuringTkinterTask(self, 'idle', self.__check_progress)
 		self.__create_widgets(path)
 		self.__configure_grid()
+		if future is not None:
+			self.started(future)
 
 	def __create_widgets(self, path:PathLike):
 		logger = getLogger(__name__)
@@ -36,6 +38,9 @@ class OutputFileItem(Frame):
 
 	def started(self, future:Future):
 		logger = getLogger(__name__)
+		if self.future is not None:
+			logger.warning(f'overwriting output future: {self}')
+			self.future.cancel()
 		self.future = future
 		self.progress_bar.configure(mode='indeterminate')
 		self.progress_bar.start()

@@ -41,8 +41,7 @@ class AudioRipperGUI(PanedWindow):
 		max_workers = AudioRipperGUI.max_workers()
 		logger.info(f'using {max_workers} worker processes')
 		executor = ResiliantExecutor(ProcessPoolExecutor, max_workers=max_workers, initializer=dictConfig, initargs=(worker_config_dict,))
-		job_executor = JobExecutor(executor)
-		self.output_frame = OutputFilesFrame(job_executor, self.files_frame, self.settings_frame, self)
+		self.output_frame = OutputFilesFrame(executor, self.files_frame, self.settings_frame, self)
 		logger.debug(f'created widgets: {self}')
 
 	def __configure_grid(self):
