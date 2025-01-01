@@ -23,7 +23,7 @@ class OutputFileItem(Frame):
 		self.path_variable = StringVar(self, path)
 		self.path_entry = Entry(self, textvariable=self.path_variable, state='readonly')
 		self.progress_variable = DoubleVar(self)
-		self.progress_bar = RealtimeProgressbar(rate=200, master=self, mode='indeterminate', variable=self.progress_variable)
+		self.progress_bar = RealtimeProgressbar(rate=200, master=self, mode='indeterminate', variable=self.progress_variable, )
 		self.destory_button = Button(master=self, command=self.destroy, text='x', width=2)
 		logger.debug(f'widgets created: {self}')
 
@@ -33,6 +33,9 @@ class OutputFileItem(Frame):
 		self.path_entry.grid(row=0, column=0, sticky='EW')
 		self.destory_button.grid(row=0, column=1)
 		self.progress_bar.grid(row=1, column=0, columnspan=2, sticky='EW')
+		if self.future is None:
+			self.destory_button.grid_remove()
+			self.progress_bar.grid_remove()
 		self.columnconfigure(0, weight=1)
 		logger.debug(f'grid configured: {self}')
 
@@ -42,6 +45,8 @@ class OutputFileItem(Frame):
 			logger.warning(f'overwriting output future: {self}')
 			self.future.cancel()
 		self.future = future
+		self.destory_button.grid()
+		self.progress_bar.grid()
 		self.progress_bar.configure(mode='indeterminate')
 		self.progress_bar.start()
 		self.check_progress_task.schedule()
