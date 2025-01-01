@@ -1,7 +1,7 @@
 from concurrent.futures import Executor, Future
 from logging import getLogger
 from os import PathLike
-from os.path import abspath, join, basename
+from os.path import abspath, join, basename, splitext
 from tkinter import Misc
 from tkinter.ttk import Button, LabelFrame
 from typing import Iterable, Tuple
@@ -58,16 +58,26 @@ class OutputFilesFrame(LabelFrame):
 	def input_paths(self)->Tuple[PathLike]:
 		return tuple(self.input_files.get())
 
-	def output_paths(self, input_paths:Iterable[PathLike])->Iterable[PathLike]:
+	def output_paths(self, input_paths:Tuple[PathLike])->Iterable[PathLike]:
 		logger = getLogger(__name__)
 		logger.debug(f'generating output paths... {self}')
 		output_dir = self.settings.directory.get()
 		logger.debug(f'output directory: {abspath(output_dir)}')
 		output_extension = self.settings.file_extension.get()
 		logger.debug(f'output extension: {output_extension}')
+		output_paths:set[PathLike] = set()
 		for input_path in input_paths:
 			output_path = abspath(join(output_dir, change_file_extension(basename(input_path), output_extension)))
+			if output_path in output_paths:
+				old = output_path
+				root, ext = splitext(output_path)
+				count = 1
+				while output_path in output_paths | ({input_paths} - {old}):
+					output_path = f'{root}{count}{ext}'
+					count += 1
+				logger.warning(f'renamed duplicate output path: {input_path} -> {old} -> {output_path}')
 			logger.debug(f'generated output path: {input_path} -> {output_path}')
+			output_paths.add(output_path)
 			yield output_path
 
 	def __submit_jobs(self, input_paths:Iterable[PathLike], output_paths:Iterable[PathLike])->Iterable[Future]:
