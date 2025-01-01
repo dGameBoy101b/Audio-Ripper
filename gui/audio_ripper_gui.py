@@ -4,7 +4,6 @@ from tkinter.ttk import PanedWindow
 from concurrent.futures import ProcessPoolExecutor
 from os import cpu_count
 
-from ..job_executor import JobExecutor
 from ..audio_scanner import AudioScanner, is_audio
 
 from .directory_scans_frame import DirectoryScansFrame
