@@ -1,5 +1,6 @@
 from concurrent.futures import Executor, Future, wait
 import logging
+from os import fsdecode
 import time
 
 from .copy_media import copy_media
@@ -11,7 +12,7 @@ def rip(args:RipArgs, executor:Executor)->RipReport:
 	logger = logging.getLogger(__name__)
 	conversions = dict()
 
-	logger.info(f'beginning rip from {args.input_dir} to {args.output_dir} with {args.output_extension} output type and following metadata overrides: {"\n".join(args.metadata_overrides)}')
+	logger.info(f'beginning rip from {fsdecode(args.input_dir)} to {fsdecode(args.output_dir)} with {args.output_extension} output type and following metadata overrides: {"\n".join(args.metadata_overrides)}')
 	start_time = time.perf_counter()
 	futures:list[Future] = list()
 
