@@ -6,6 +6,7 @@ from tkinter import Event, Misc
 from tkinter.ttk import Button, LabelFrame
 from tkinter.filedialog import askdirectory
 
+from mutable_queue import remove, clear
 from ..audio_scanner import AudioScanner
 
 from .input_files_frame import InputFilesFrame
@@ -14,11 +15,13 @@ from .recurring_tkinter_task import ReccuringTkinterTask
 from .widget_exploration import explore_descendants
 from .vertical_box import VerticalBox
 
+StrPath = PathLike|str
+
 class DirectoryScansFrame(LabelFrame):
-	def __init__(self, file_list:InputFilesFrame, scanner: AudioScanner = None, master:Misc=None, **kwargs):
+	def __init__(self, file_list:InputFilesFrame, scanner: AudioScanner|None = None, master:Misc|None=None, **kwargs):
 		super().__init__(master, **kwargs, text='Directory Scans')
 		self.file_list = file_list
-		self.directories:list[PathLike] = list()
+		self.directories:list[StrPath] = list()
 		self.scan_task = ReccuringTkinterTask(self, 'idle', self.__continue_scan)
 		self.scanner = AudioScanner() if scanner is None else scanner
 		self.scanner.should_skip = self.__should_skip
@@ -48,9 +51,10 @@ class DirectoryScansFrame(LabelFrame):
 	def __directory_item_destroyed(self, event: Event):
 		logger = getLogger(__name__)
 		logger.debug(f'directory item destroyed: {event.widget}')
-		self.remove_directory(event.widget)
+		if isinstance(event.widget, InputDirectoryItem):
+			self.remove_directory(event.widget)
 
-	def add_directory(self, directory:PathLike=None)->bool:
+	def add_directory(self, directory:StrPath|None=None)->bool:
 		logger = getLogger(__name__)
 
 		if directory == None:
@@ -84,10 +88,21 @@ class DirectoryScansFrame(LabelFrame):
 		logger.info(f'input directory added: {fspath(directory)}')
 		self.__layout_items()
 		return True
+	
+	def get_directory(self, path:StrPath)->InputDirectoryItem:
+		for widget in self.content_box.content.winfo_children():
+			if widget.winfo_exists() and isinstance(widget, InputDirectoryItem) and widget.get() == path:
+				return widget
+		raise KeyError(f"No input directory item found for path: {path}")
 
-	def remove_directory(self, item:InputDirectoryItem):
+	def remove_directory(self, item:InputDirectoryItem|StrPath):
 		logger = getLogger(__name__)
-		path = abspath(item.get())
+		if isinstance(item, InputDirectoryItem):
+			path = item.get()
+		else:
+			path = item
+			item = self.get_directory(path)
+		path = abspath(path)
 		self.directories.remove(path)
 		item.unbind('<Destroy>', self.__destroy_bindings[item])
 		del self.__destroy_bindings[item]
@@ -96,7 +111,7 @@ class DirectoryScansFrame(LabelFrame):
 			logger.debug(f'input directory closed: {path}')
 		else:
 			try:
-				self.scanner.input_directories.remove(path)
+				remove(self.scanner.input_directories, path)
 				logger.debug(f'input directory removed from queue: {path}')
 			except ValueError:
 				logger.warning(f'removed input directory not in scanner: {path}')
@@ -110,7 +125,7 @@ class DirectoryScansFrame(LabelFrame):
 		to_destroy = list(self.content_box.content.winfo_children())
 		self.scan_task.unschedule()
 		self.scanner.close_current_directory()
-		self.scanner.input_directories.clear()
+		clear(self.scanner.input_directories)
 		self.directories.clear()
 		for item in to_destroy:
 			item.unbind('<Destroy>', self.__destroy_bindings[item])
@@ -207,7 +222,7 @@ class DirectoryScansFrame(LabelFrame):
 	def destroy(self):
 		self.scan_task.unschedule()
 		self.scanner.close_current_directory()
-		self.scanner.input_directories.clear()
+		clear(self.scanner.input_directories)
 		for item in self.content_box.content.winfo_children():
 			if item in self.__destroy_bindings:
 				item.unbind('<Destroy>', self.__destroy_bindings[item])
