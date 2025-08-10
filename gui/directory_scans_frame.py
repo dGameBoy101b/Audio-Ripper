@@ -6,7 +6,6 @@ from tkinter import Event, Misc
 from tkinter.ttk import Button, LabelFrame
 from tkinter.filedialog import askdirectory
 
-from mutable_queue import remove, clear
 from ..audio_scanner import AudioScanner
 
 from .input_files_frame import InputFilesFrame
@@ -14,6 +13,7 @@ from .input_directory_item import InputDirectoryItem
 from .recurring_tkinter_task import ReccuringTkinterTask
 from .widget_exploration import explore_descendants
 from .vertical_box import VerticalBox
+from .mutable_queue import remove, clear
 
 StrPath = PathLike|str
 
