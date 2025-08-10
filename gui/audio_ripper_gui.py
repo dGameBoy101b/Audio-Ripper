@@ -17,6 +17,7 @@ from .worker_logging import config_dict as worker_config_dict
 class AudioRipperGUI(PanedWindow):
 	MAX_WORKERS = 60
 
+	@staticmethod
 	def max_workers()->int:
 		max_workers = cpu_count()
 		if max_workers is None:
