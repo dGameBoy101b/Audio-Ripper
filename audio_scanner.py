@@ -90,7 +90,8 @@ class AudioScanner():
 		try:
 			self.__current_path = next(self.__scanner)
 		except StopIteration:
-			logger.info(f'finished scanning directory: {fspath(self.__current_directory)}')
+			if self.__current_directory is not None:
+				logger.info(f'finished scanning directory: {fspath(self.__current_directory)}')
 			self.close_current_directory()
 			return False
 		return True
@@ -99,8 +100,9 @@ class AudioScanner():
 		if self.__scanner is None:
 			self.open_next_directory()
 			return
-
-		if not self.try_get_next_path():
+		
+		self.try_get_next_path()
+		if self.__current_path is None:
 			return
 		
 		if self.try_output_skip(self.__current_path):
@@ -124,6 +126,8 @@ class AudioScanner():
 			return
 		self.__scanner.close()
 		self.__scanner = None
+		if self.__current_directory is None:
+			return
 		logger.info(f'closed directory: {fspath(self.__current_directory)}')
 		self.__current_directory = None
 		self.__current_path = None
