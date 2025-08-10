@@ -56,7 +56,7 @@ class MetadataOverridesFrame(LabelFrame):
 		self.update()
 
 	def __item_destroyed(self, event: Event):
-		item:MetadataOverrideItem = event.widget
+		item = event.widget
 		print(f'removed metadata override: {item}')
 		item.unbind('<Destroy>', self.__destroy_bindings[item])
 		del self.__destroy_bindings[item]
