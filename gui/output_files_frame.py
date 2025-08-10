@@ -16,8 +16,10 @@ from .input_files_frame import InputFilesFrame
 from .settings_frame import SettingsFrame
 from .widget_exploration import explore_descendants
 
+StrPath = PathLike|str
+
 class OutputFilesFrame(LabelFrame):
-	def __init__(self, executor:Executor, input_files:InputFilesFrame, settings:SettingsFrame, master:Misc=None, **kwargs):
+	def __init__(self, executor:Executor, input_files:InputFilesFrame, settings:SettingsFrame, master:Misc|None=None, **kwargs):
 		super().__init__(master, **kwargs, text='Output Files')
 		self.executor = executor
 		self.input_files = input_files
@@ -55,24 +57,25 @@ class OutputFilesFrame(LabelFrame):
 				row += 1
 		logger.debug(f'layed out {row} output file items')
 
-	def input_paths(self)->Tuple[PathLike]:
-		return tuple(self.input_files.get())
+	def input_paths(self)->Iterable[StrPath]:
+		return self.input_files.get()
 
-	def output_paths(self, input_paths:Tuple[PathLike])->Iterable[PathLike]:
+	def output_paths(self, input_paths:Iterable[StrPath])->Iterable[StrPath]:
 		logger = getLogger(__name__)
 		logger.debug(f'generating output paths... {self}')
 		output_dir = self.settings.directory.get()
 		logger.debug(f'output directory: {abspath(output_dir)}')
 		output_extension = self.settings.file_extension.get()
 		logger.debug(f'output extension: {output_extension}')
-		output_paths:set[PathLike] = set()
+		input_paths = set(input_paths)
+		output_paths:set[StrPath] = set()
 		for input_path in input_paths:
 			output_path = abspath(join(output_dir, change_file_extension(basename(input_path), output_extension)))
 			if output_path in output_paths:
 				old = output_path
 				root, ext = splitext(output_path)
 				count = 1
-				while output_path in output_paths | ({input_paths} - {old}):
+				while output_path in output_paths | (input_paths - {old}):
 					output_path = f'{root}{count}{ext}'
 					count += 1
 				logger.warning(f'renamed duplicate output path: {input_path} -> {old} -> {output_path}')
@@ -80,7 +83,7 @@ class OutputFilesFrame(LabelFrame):
 			output_paths.add(output_path)
 			yield output_path
 
-	def __submit_jobs(self, input_paths:Iterable[PathLike], output_paths:Iterable[PathLike])->Iterable[Future]:
+	def __submit_jobs(self, input_paths:Iterable[StrPath], output_paths:Iterable[StrPath])->Iterable[Future]:
 		logger = getLogger(__name__)
 		logger.debug(f'submitting jobs... {self}')
 		metadata_overrides = self.settings.metadata_overrides.get()
@@ -91,7 +94,7 @@ class OutputFilesFrame(LabelFrame):
 			logger.debug(f'submitted job {input_path}->{output_path}: {self}')
 			yield future
 
-	def __create_items(self, output_paths:Iterable[PathLike])->list[OutputFileItem]:
+	def __create_items(self, output_paths:Iterable[StrPath])->list[OutputFileItem]:
 		logger = getLogger(__name__)
 		logger.debug(f'creating items... {self}')
 		items = list()
@@ -117,7 +120,7 @@ class OutputFilesFrame(LabelFrame):
 		logger = getLogger(__name__)
 		logger.info('starting rip...')
 		self.clear()
-		input_paths = self.input_paths()
+		input_paths = tuple(self.input_paths())
 		output_paths = tuple(self.output_paths(input_paths))
 		items = self.__create_items(output_paths)
 		futures = self.__submit_jobs(input_paths, output_paths)

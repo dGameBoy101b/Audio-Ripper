@@ -1,14 +1,16 @@
 from concurrent.futures import Future
 from logging import getLogger
-from os import PathLike
+from os import PathLike, fsdecode
 from tkinter import DoubleVar, Misc, StringVar
 from tkinter.ttk import Button, Entry, Frame
 
 from .recurring_tkinter_task import ReccuringTkinterTask
 from .realtime_progressbar import RealtimeProgressbar
 
+StrPath = PathLike|str
+
 class OutputFileItem(Frame):
-	def __init__(self, path:PathLike, future:Future=None, master:Misc=None, **kwargs):
+	def __init__(self, path:StrPath, future:Future|None=None, master:Misc|None=None, **kwargs):
 		super().__init__(master, **kwargs)
 		self.future = None
 		self.check_progress_task = ReccuringTkinterTask(self, 'idle', self.__check_progress)
@@ -17,10 +19,10 @@ class OutputFileItem(Frame):
 		if future is not None:
 			self.started(future)
 
-	def __create_widgets(self, path:PathLike):
+	def __create_widgets(self, path:StrPath):
 		logger = getLogger(__name__)
 		logger.debug(f'creating widgets... {self}')
-		self.path_variable = StringVar(self, path)
+		self.path_variable = StringVar(self, fsdecode(path))
 		self.path_entry = Entry(self, textvariable=self.path_variable, state='readonly')
 		self.progress_variable = DoubleVar(self)
 		self.progress_bar = RealtimeProgressbar(rate=200, master=self, mode='indeterminate', variable=self.progress_variable, )

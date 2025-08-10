@@ -1,8 +1,11 @@
+from os import PathLike
 from pathlib import Path, PurePath
 import ffmpeg
 import logging
 
-def copy_media(output_filepath:PurePath, input_filepath:PurePath, **kwargs):
+StrPath = PathLike|str
+
+def copy_media(output_filepath:StrPath, input_filepath:StrPath, **kwargs):
 	logger = logging.getLogger(__name__)
 	output_filepath = PurePath(output_filepath)
 	input_filepath = PurePath(input_filepath)
@@ -25,15 +28,16 @@ def copy_media(output_filepath:PurePath, input_filepath:PurePath, **kwargs):
 
 if __name__ == '__main__':
 	from scan_for_audio import scan_for_audio
-	import os.path
-	import sys
+	from os.path import basename, join
+	from os import fspath
+	from sys import stdout
 	IN_DIR='./test_dir'
 	OUT_DIR='./test_out'
-	logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
+	logging.basicConfig(level=logging.DEBUG, stream=stdout)
 	print(f'copying audio from {IN_DIR} to {OUT_DIR}')
 	for audio_file in scan_for_audio(IN_DIR):
-		input_path = audio_file.path
-		output_path = os.path.join(OUT_DIR, audio_file.name)
+		input_path = fspath(audio_file)
+		output_path = join(OUT_DIR, basename(audio_file))
 		print(f'copying {input_path} to {output_path}')
 		copy_media(output_path, input_path)
 		print(f'successfully copied {input_path} to {output_path}')
