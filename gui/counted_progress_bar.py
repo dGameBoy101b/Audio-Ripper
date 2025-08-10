@@ -4,10 +4,11 @@ from typing import Callable
 
 class CountedProgressbar(ttk.Frame):
 
+	@staticmethod
 	def default_to_string(value:float|int, max:float|int)->str:
 		return f'{value}/{max}'
 
-	def __init__(self, value:DoubleVar|IntVar, maximum:float|int, to_string:Callable[[float|int, float|int], str]=None, master:ttk.Widget=None):
+	def __init__(self, value:DoubleVar|IntVar, maximum:float|int, to_string:Callable[[float|int, float|int], str]|None=None, master:ttk.Widget|None=None):
 		super().__init__(master)
 
 		self.value_variable = value
