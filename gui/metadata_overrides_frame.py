@@ -52,7 +52,7 @@ class MetadataOverridesFrame(LabelFrame):
 				continue
 			item.grid(column=0, row=row, sticky='EW', columnspan=3)
 			row += 1
-		logger.info(f'layed out {len(self.__items)} metadata overrides')
+		logger.info(f'layed out {row} metadata overrides')
 		self.update()
 
 	def __item_destroyed(self, event: Event):
