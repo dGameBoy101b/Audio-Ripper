@@ -1,27 +1,28 @@
 from logging import getLogger
 from os import PathLike, fspath, scandir
 from queue import Empty, Queue
-from typing import Callable, Generator, Self
+from typing import Callable, Iterable, Self
 from os.path import isdir
 
-from .mutable_queue import MutableQueue
 from .is_audio import is_audio
+
+StrPath = PathLike|str
 
 class AudioScanner():
 
-	def __init__(self, input_directories:MutableQueue[PathLike]=None, should_skip:Callable[[PathLike],bool]=None):
+	def __init__(self, input_directories:Queue[StrPath]|Iterable[StrPath]|None=None, should_skip:Callable[[PathLike],bool]|None=None):
 		logger = getLogger(__name__)
 		self.output_audio: Queue[PathLike] = Queue()
 		self.output_skipped: Queue[PathLike] = Queue()
 		self.output_subdirectories: Queue[PathLike] = Queue()
-		self.__scanner: Generator[PathLike]|None = None
-		self.__current_directory: PathLike|None = None
-		self.__current_path: PathLike|None = None
+		self.__scanner = None
+		self.__current_directory = None
+		self.__current_path = None
 		if isinstance(input_directories, Queue):
 			self.input_directories = input_directories
 			logger.debug(f'inherited input directories queue: {input_directories}')
 		else:
-			self.input_directories: MutableQueue[PathLike] = MutableQueue()
+			self.input_directories: Queue[StrPath] = Queue()
 			if input_directories is not None:
 				for directory in input_directories:
 					self.input_directories.put(directory)
