@@ -4,6 +4,7 @@ import logging.config
 import sys
 from pathlib import PurePath
 import logging
+from typing import Any
 from .rip import rip
 from .rip_args import RipArgs
 from os import path
@@ -19,7 +20,7 @@ def create_parser()->ArgumentParser:
 			return '.'+arg
 		return arg
 	
-	def convert_metadata_override(arg:str)->tuple[str,any]:
+	def convert_metadata_override(arg:str)->tuple[str,Any]:
 		key, value = arg.split('=', 1)
 		if value == '':
 			value = None
